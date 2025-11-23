@@ -108,13 +108,22 @@ const ClassDetails: React.FC = () => {
 
   const handleDeleteClass = () => {
     if (!cls) return;
-    const confirmName = prompt(`Para deletar esta turma e TODOS OS DADOS (alunos, notas, etc), digite o nome da turma: "${cls.name}"`);
-    if (confirmName === cls.name) {
-        db.classes.delete(cls.id);
-        notify('info', 'Turma excluída com sucesso.');
-        navigate('/classes');
+    // Alterado para pedir a palavra "DELETAR" em vez do nome da turma
+    const confirmName = prompt(`ATENÇÃO: Esta ação é irreversível!\n\nPara confirmar a exclusão da turma "${cls.name}" e todos os seus dados (alunos, notas, etc), digite a palavra: DELETAR`);
+    
+    if (confirmName === 'DELETAR') {
+        try {
+            db.classes.delete(cls.id);
+            notify('success', 'Turma excluída com sucesso.');
+            navigate('/classes');
+        } catch (error) {
+            console.error(error);
+            notify('error', 'Erro ao excluir turma.');
+        }
     } else {
-        notify('error', 'Nome incorreto. Exclusão cancelada.');
+        if (confirmName !== null) { // Só mostra erro se não foi cancelado (cancel = null)
+             notify('error', 'Palavra de confirmação incorreta. Ação cancelada.');
+        }
     }
   };
 
@@ -206,7 +215,7 @@ const ClassDetails: React.FC = () => {
 
             // Generate fake email based on name if not provided
             const studentId = `s_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-            const email = `${name.toLowerCase().replace(/[^a-z]/g, '.')}@sas.student.com`;
+            const email = row[1] || `${name.toLowerCase().replace(/[^a-z]/g, '.')}@sas.student.com`; // Try Column B for email
             
             const newStudent: Student = {
                 id: studentId,
@@ -215,8 +224,18 @@ const ClassDetails: React.FC = () => {
                 enrollmentDate: new Date().toISOString().split('T')[0]
             };
             
+            // Create user account for student automatically
+            const studentUser = {
+                id: newStudent.id,
+                name: newStudent.name,
+                email: newStudent.email,
+                role: 'student' as const,
+                password: '123' // Default password
+            };
+
             // Avoid duplicates check could be added here
             db.students.add(newStudent);
+            db.users.add(studentUser);
             db.enrollments.enroll(id, studentId);
             count++;
         });
@@ -308,6 +327,35 @@ const ClassDetails: React.FC = () => {
         homework: 'Completo',
         comments: ''
       };
+  };
+
+  // --- Handler for Manual Enrollment ---
+  const handleManualEnroll = () => {
+      const name = prompt("Nome Completo do Aluno:");
+      if (!name) return;
+      
+      const email = prompt("Email do Aluno (opcional):") || `${name.toLowerCase().replace(/[^a-z]/g, '.')}@sas.student.com`;
+      
+      const newStudent = {
+          id: `s_${Date.now()}`,
+          name,
+          email,
+          enrollmentDate: new Date().toISOString().split('T')[0]
+      };
+      
+      const newStudentUser = {
+          id: newStudent.id,
+          name: newStudent.name,
+          email: newStudent.email,
+          role: 'student' as const,
+          password: '123'
+      };
+
+      db.students.add(newStudent);
+      db.users.add(newStudentUser);
+      db.enrollments.enroll(id!, newStudent.id);
+      refreshData();
+      notify('success', 'Aluno matriculado e usuário criado (Senha: 123).');
   };
 
   return (
@@ -468,16 +516,7 @@ const ClassDetails: React.FC = () => {
                         {isImporting ? 'Importando...' : 'Importar Excel (Col A)'}
                     </Button>
 
-                    <Button variant="primary" className="w-full md:w-auto" onClick={() => {
-                        const name = prompt("Nome do Aluno:");
-                        if(name) {
-                            const newS = {id: 's_'+Date.now(), name, email: 'manual@sas.com', enrollmentDate: new Date().toISOString().split('T')[0]};
-                            db.students.add(newS);
-                            db.enrollments.enroll(id!, newS.id);
-                            refreshData();
-                            notify('success', 'Aluno adicionado manualmente');
-                        }
-                    }}>
+                    <Button variant="primary" className="w-full md:w-auto" onClick={handleManualEnroll}>
                         <Plus size={16} className="mr-2" /> Matricular Manualmente
                     </Button>
                 </div>
