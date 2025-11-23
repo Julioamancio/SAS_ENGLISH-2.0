@@ -1,4 +1,4 @@
-import { ClassGroup, Student, Activity, Grade, Enrollment, Feedback } from '../types';
+import { ClassGroup, Student, Activity, Grade, Enrollment, Feedback, QuizAttempt, User } from '../types';
 
 // Storage Keys
 const KEYS = {
@@ -8,6 +8,8 @@ const KEYS = {
   GRADES: 'sas_grades',
   ENROLLMENTS: 'sas_enrollments',
   FEEDBACKS: 'sas_feedbacks',
+  QUIZ_ATTEMPTS: 'sas_quiz_attempts',
+  USERS: 'sas_users',
   AUTO_BACKUP: 'sas_auto_backup',
   BACKUP_TIMESTAMP: 'sas_backup_timestamp'
 };
@@ -21,6 +23,19 @@ export const DEFAULT_STAGES = [
 
 // Initial Seed Data
 const seedData = () => {
+  // Always ensure Admin exists
+  const existingUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+  if (!existingUsers.find((u: User) => u.email === 'admin@sas.com')) {
+      const adminUser: User = { 
+          id: 'admin', 
+          name: 'Administrador', 
+          email: 'admin@sas.com', 
+          role: 'admin',
+          password: 'admin123'
+      };
+      localStorage.setItem(KEYS.USERS, JSON.stringify([...existingUsers, adminUser]));
+  }
+
   if (localStorage.getItem(KEYS.CLASSES)) return;
 
   const classes: ClassGroup[] = [
@@ -48,6 +63,18 @@ const seedData = () => {
     { id: 's3', name: 'Carlos Lima', email: 'carlos@exemplo.com', enrollmentDate: '2024-01-20' },
   ];
 
+  // Create login users for seeded students
+  const studentUsers: User[] = students.map(s => ({
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      role: 'student',
+      password: '123' // Default password for seeded data
+  }));
+  
+  const currentUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+  localStorage.setItem(KEYS.USERS, JSON.stringify([...currentUsers, ...studentUsers]));
+
   const enrollments: Enrollment[] = [
     { classId: 'c1', studentId: 's1', active: true },
     { classId: 'c1', studentId: 's2', active: true },
@@ -70,6 +97,7 @@ const seedData = () => {
   localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(activities));
   localStorage.setItem(KEYS.GRADES, JSON.stringify(grades));
   localStorage.setItem(KEYS.FEEDBACKS, JSON.stringify([]));
+  localStorage.setItem(KEYS.QUIZ_ATTEMPTS, JSON.stringify([]));
 };
 
 // Helper to get/set
@@ -79,6 +107,21 @@ const set = (key: string, data: any[]) => localStorage.setItem(key, JSON.stringi
 export const db = {
   init: seedData,
   
+  users: {
+    getAll: () => get<User>(KEYS.USERS),
+    add: (user: User) => {
+        const users = get<User>(KEYS.USERS);
+        // Prevent duplicates
+        if(!users.find(u => u.email === user.email)) {
+            set(KEYS.USERS, [...users, user]);
+        }
+    },
+    delete: (userId: string) => {
+        set(KEYS.USERS, get<User>(KEYS.USERS).filter(u => u.id !== userId));
+    },
+    find: (email: string) => get<User>(KEYS.USERS).find(u => u.email === email)
+  },
+
   classes: {
     getAll: () => get<ClassGroup>(KEYS.CLASSES),
     add: (cls: ClassGroup) => set(KEYS.CLASSES, [...get(KEYS.CLASSES), cls]),
@@ -100,9 +143,7 @@ export const db = {
         // Remove enrollments for this class
         set(KEYS.ENROLLMENTS, allEnrollments.filter(e => e.classId !== classId));
 
-        // 3. Delete Students (As requested: "todos os alunos também serão deletados")
-        // Note: In a real system, we might check if they are in other classes first.
-        // Here we assume if they are in this class, they go.
+        // 3. Delete Students
         const remainingStudents = get<Student>(KEYS.STUDENTS).filter(s => !studentIdsToDelete.includes(s.id));
         set(KEYS.STUDENTS, remainingStudents);
 
@@ -110,8 +151,7 @@ export const db = {
         const remainingActivities = get<Activity>(KEYS.ACTIVITIES).filter(a => a.classId !== classId);
         set(KEYS.ACTIVITIES, remainingActivities);
 
-        // 5. Delete Grades (Linked to deleted activities)
-        // Since we don't have easy Join, we just filter grades where activityId no longer exists in remainingActivities
+        // 5. Delete Grades
         const remainingActivityIds = remainingActivities.map(a => a.id);
         const remainingGrades = get<Grade>(KEYS.GRADES).filter(g => remainingActivityIds.includes(g.activityId));
         set(KEYS.GRADES, remainingGrades);
@@ -190,57 +230,75 @@ export const db = {
     }
   },
 
+  quiz: {
+      getAttempts: () => get<QuizAttempt>(KEYS.QUIZ_ATTEMPTS),
+      saveAttempt: (attempt: QuizAttempt) => {
+          set(KEYS.QUIZ_ATTEMPTS, [...get(KEYS.QUIZ_ATTEMPTS), attempt]);
+      },
+      getUserStats: () => {
+          const attempts = get<QuizAttempt>(KEYS.QUIZ_ATTEMPTS);
+          const totalXP = attempts.reduce((sum, a) => sum + a.xpEarned, 0);
+          const totalQuizzes = attempts.length;
+          
+          // Simple Leveling System: 100 XP per level
+          const level = Math.floor(totalXP / 500) + 1;
+          const nextLevelXP = level * 500;
+          const progress = totalXP - ((level - 1) * 500);
+          
+          return { totalXP, level, nextLevelXP, progress, totalQuizzes };
+      }
+  },
+
   system: {
-      // Export all data
       backup: () => {
           const data = {
+              users: get(KEYS.USERS),
               classes: get(KEYS.CLASSES),
               students: get(KEYS.STUDENTS),
               activities: get(KEYS.ACTIVITIES),
               grades: get(KEYS.GRADES),
               enrollments: get(KEYS.ENROLLMENTS),
               feedbacks: get(KEYS.FEEDBACKS),
+              quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
               timestamp: new Date().toISOString()
           };
           return JSON.stringify(data);
       },
-      // Restore data from JSON string
       restore: (jsonString: string) => {
           try {
               const data = JSON.parse(jsonString);
               if(!data.classes || !data.students) throw new Error("Arquivo de backup inválido");
               
+              set(KEYS.USERS, data.users || []);
               set(KEYS.CLASSES, data.classes);
               set(KEYS.STUDENTS, data.students);
               set(KEYS.ACTIVITIES, data.activities || []);
               set(KEYS.GRADES, data.grades || []);
               set(KEYS.ENROLLMENTS, data.enrollments || []);
               set(KEYS.FEEDBACKS, data.feedbacks || []);
+              set(KEYS.QUIZ_ATTEMPTS, data.quizAttempts || []);
               return true;
           } catch (e) {
               console.error(e);
               return false;
           }
       },
-      // Auto Backup Internal
       runAutoBackup: () => {
           const data = {
+            users: get(KEYS.USERS),
             classes: get(KEYS.CLASSES),
             students: get(KEYS.STUDENTS),
             activities: get(KEYS.ACTIVITIES),
             grades: get(KEYS.GRADES),
             enrollments: get(KEYS.ENROLLMENTS),
             feedbacks: get(KEYS.FEEDBACKS),
+            quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
             timestamp: new Date().toISOString()
         };
         localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));
         localStorage.setItem(KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
       },
-      getAutoBackup: () => {
-          return localStorage.getItem(KEYS.AUTO_BACKUP);
-      },
-      getLastBackupTime: () => {
-          return localStorage.getItem(KEYS.BACKUP_TIMESTAMP);
-      }
+      getAutoBackup: () => localStorage.getItem(KEYS.AUTO_BACKUP),
+      getLastBackupTime: () => localStorage.getItem(KEYS.BACKUP_TIMESTAMP)
   }
 };

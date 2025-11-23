@@ -1,8 +1,13 @@
 export enum Difficulty {
-  BEGINNER = 'Iniciante',
-  INTERMEDIATE = 'Intermediário',
-  ADVANCED = 'Avançado'
+  A1 = 'A1',
+  A2 = 'A2',
+  B1 = 'B1',
+  B2 = 'B2',
+  C1 = 'C1',
+  C2 = 'C2'
 }
+
+export type QuizMode = 'grammar' | 'reading' | 'enem';
 
 export interface QuizQuestion {
   question: string;
@@ -11,13 +16,33 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface QuizData {
+  topic: string;
+  level: Difficulty;
+  mode: QuizMode;
+  passage?: string; // For reading comprehension
+  imageUrl?: string; // For visual ENEM questions (Cartoons, Ads)
+  questions: QuizQuestion[];
+}
+
+export interface QuizAttempt {
+  id: string;
+  date: string;
+  mode: QuizMode;
+  level: Difficulty;
+  score: number;
+  totalQuestions: number;
+  xpEarned: number;
+}
+
 // School Management Types
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'teacher';
+  role: 'admin' | 'teacher' | 'student';
+  password?: string;
 }
 
 export interface Student {

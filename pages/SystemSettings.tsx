@@ -1,13 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../services/mockDb';
+import { User } from '../types';
 import Button from '../components/Button';
-import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 
 const SystemSettings: React.FC = () => {
   const { notify } = useNotification();
+  const [activeTab, setActiveTab] = useState<'users' | 'backup'>('users');
+  
+  // Backup State
   const [lastBackupTime, setLastBackupTime] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // User Management State
+  const [users, setUsers] = useState<User[]>([]);
+  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
+  
+  // New Teacher Form
+  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', password: '' });
 
   useEffect(() => {
     // Check auto backup timestamp
@@ -15,7 +26,15 @@ const SystemSettings: React.FC = () => {
     if(ts) {
         setLastBackupTime(new Date(ts).toLocaleString());
     }
+    // Load Users
+    setUsers(db.users.getAll());
   }, []);
+
+  const refreshUsers = () => {
+      setUsers(db.users.getAll());
+  };
+
+  // --- BACKUP HANDLERS ---
 
   const handleDownloadBackup = () => {
     const json = db.system.backup();
@@ -72,76 +91,251 @@ const SystemSettings: React.FC = () => {
     }
   };
 
+  // --- USER HANDLERS ---
+
+  const handleCreateTeacher = () => {
+      if(!newTeacher.name || !newTeacher.email || !newTeacher.password) {
+          notify('error', 'Preencha todos os campos.');
+          return;
+      }
+      
+      const existing = users.find(u => u.email === newTeacher.email);
+      if(existing) {
+          notify('error', 'Email já cadastrado.');
+          return;
+      }
+
+      const teacherUser: User = {
+          id: `t_${Date.now()}`,
+          name: newTeacher.name,
+          email: newTeacher.email,
+          role: 'teacher',
+          password: newTeacher.password
+      };
+
+      db.users.add(teacherUser);
+      notify('success', 'Professor cadastrado com sucesso.');
+      setNewTeacher({ name: '', email: '', password: '' });
+      refreshUsers();
+  };
+
+  const handleDeleteUser = (userId: string) => {
+      if(userId === 'admin') {
+          notify('error', 'Não é possível remover o Administrador principal.');
+          return;
+      }
+      if(window.confirm('Tem certeza que deseja remover este usuário?')) {
+          db.users.delete(userId);
+          refreshUsers();
+          notify('info', 'Usuário removido.');
+      }
+  };
+
+  const togglePassword = (userId: string) => {
+      setShowPasswords(prev => ({...prev, [userId]: !prev[userId]}));
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-        <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Configurações do Sistema</h1>
-            <p className="text-gray-500 mt-1">Gerencie backups e restauração de dados.</p>
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
+        <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Painel de Configurações</h1>
+            <p className="text-gray-500 mt-1">Gerencie usuários, acessos e segurança dos dados.</p>
         </div>
 
-        {/* Backup Status */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Database className="mr-2 text-blue-600" /> Status do Backup
-            </h2>
-            <div className="flex items-center space-x-3 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <Clock size={18} className="text-blue-500" />
-                <span>Backup Automático: <span className="font-semibold">{lastBackupTime || 'Ainda não executado'}</span> (Executa a cada 5 min)</span>
-            </div>
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 mb-6">
+            <button 
+                onClick={() => setActiveTab('users')}
+                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 ${
+                    activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+            >
+                <Users size={18} className="mr-2" /> Gestão de Usuários e Senhas
+            </button>
+            <button 
+                onClick={() => setActiveTab('backup')}
+                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 ${
+                    activeTab === 'backup' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+            >
+                <Database size={18} className="mr-2" /> Backup & Restauração
+            </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Export Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
-                <div className="flex-1">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2">Exportar Dados</h2>
-                    <p className="text-sm text-gray-500 mb-6">Baixe uma cópia completa de todas as turmas, alunos, notas e configurações para segurança.</p>
-                    
-                    <div className="space-y-3">
-                        <Button onClick={handleDownloadBackup} className="w-full justify-between group">
-                            <span>Baixar Backup Atual</span>
-                            <Download size={18} className="group-hover:translate-y-1 transition-transform" />
-                        </Button>
-                        
-                        <Button variant="outline" onClick={handleDownloadAutoBackup} className="w-full justify-between group" disabled={!lastBackupTime}>
-                            <span>Baixar Último Automático</span>
-                            <RefreshCw size={18} className="group-hover:rotate-180 transition-transform" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Import Section */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
-                <div className="flex-1">
-                    <h2 className="text-lg font-bold text-gray-900 mb-2">Restaurar Dados</h2>
-                    <p className="text-sm text-gray-500 mb-6">Carregue um arquivo de backup (.json) para restaurar o sistema. Cuidado: Isso apagará os dados atuais.</p>
-                    
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-                        <div className="flex items-center">
-                            <AlertTriangle className="text-red-500 mr-2" size={20} />
-                            <p className="text-xs text-red-700 font-bold uppercase">Zona de Perigo</p>
+        {/* --- USERS TAB --- */}
+        {activeTab === 'users' && (
+            <div className="space-y-8">
+                
+                {/* 1. Create Teacher Form */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <Plus size={20} className="mr-2 text-blue-600" /> Cadastrar Novo Professor
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                            <input 
+                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                placeholder="Ex: Prof. João da Silva"
+                                value={newTeacher.name}
+                                onChange={e => setNewTeacher({...newTeacher, name: e.target.value})}
+                            />
                         </div>
-                        <p className="text-xs text-red-600 mt-1">
-                            A restauração sobrescreve o banco de dados atual imediatamente.
-                        </p>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email de Acesso</label>
+                            <input 
+                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                placeholder="joao@sas.com"
+                                value={newTeacher.email}
+                                onChange={e => setNewTeacher({...newTeacher, email: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Senha Inicial</label>
+                            <input 
+                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                placeholder="******"
+                                type="text"
+                                value={newTeacher.password}
+                                onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
+                            />
+                        </div>
                     </div>
+                    <div className="mt-4 flex justify-end">
+                        <Button onClick={handleCreateTeacher}>
+                            Cadastrar Professor
+                        </Button>
+                    </div>
+                </div>
 
-                    <input 
-                        type="file" 
-                        ref={fileInputRef}
-                        accept=".json"
-                        onChange={handleRestore}
-                        className="hidden"
-                    />
+                {/* 2. User List */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-100 bg-gray-50">
+                        <h2 className="text-lg font-bold text-gray-900">Todos os Usuários e Senhas</h2>
+                        <p className="text-sm text-gray-500">Visualizar credenciais de alunos e professores.</p>
+                    </div>
                     
-                    <Button variant="danger" onClick={() => fileInputRef.current?.click()} className="w-full justify-between">
-                        <span>Carregar Arquivo de Backup</span>
-                        <Upload size={18} />
-                    </Button>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
+                                <tr>
+                                    <th className="p-4">Tipo</th>
+                                    <th className="p-4">Nome</th>
+                                    <th className="p-4">Email (Login)</th>
+                                    <th className="p-4">Senha</th>
+                                    <th className="p-4 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {users.map(u => (
+                                    <tr key={u.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="p-4">
+                                            {u.role === 'admin' && <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold"><ShieldCheck size={12} className="mr-1"/> Admin</span>}
+                                            {u.role === 'teacher' && <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold"><GraduationCap size={12} className="mr-1"/> Prof.</span>}
+                                            {u.role === 'student' && <span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold"><UserIcon size={12} className="mr-1"/> Aluno</span>}
+                                        </td>
+                                        <td className="p-4 font-medium text-gray-900">{u.name}</td>
+                                        <td className="p-4 text-gray-600">{u.email}</td>
+                                        <td className="p-4">
+                                            <div className="flex items-center space-x-2">
+                                                <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">
+                                                    {showPasswords[u.id] ? u.password : '••••••'}
+                                                </code>
+                                                <button 
+                                                    onClick={() => togglePassword(u.id)}
+                                                    className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                >
+                                                    {showPasswords[u.id] ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            {u.role !== 'admin' && (
+                                                <button 
+                                                    onClick={() => handleDeleteUser(u.id)}
+                                                    className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                    title="Remover Usuário"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        )}
+
+        {/* --- BACKUP TAB --- */}
+        {activeTab === 'backup' && (
+            <div className="space-y-6">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <Database className="mr-2 text-blue-600" /> Status do Backup
+                    </h2>
+                    <div className="flex items-center space-x-3 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <Clock size={18} className="text-blue-500" />
+                        <span>Backup Automático: <span className="font-semibold">{lastBackupTime || 'Ainda não executado'}</span> (Executa a cada 5 min)</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Export Section */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
+                        <div className="flex-1">
+                            <h2 className="text-lg font-bold text-gray-900 mb-2">Exportar Dados</h2>
+                            <p className="text-sm text-gray-500 mb-6">Baixe uma cópia completa de todas as turmas, alunos, notas e configurações para segurança.</p>
+                            
+                            <div className="space-y-3">
+                                <Button onClick={handleDownloadBackup} className="w-full justify-between group">
+                                    <span>Baixar Backup Atual</span>
+                                    <Download size={18} className="group-hover:translate-y-1 transition-transform" />
+                                </Button>
+                                
+                                <Button variant="outline" onClick={handleDownloadAutoBackup} className="w-full justify-between group" disabled={!lastBackupTime}>
+                                    <span>Baixar Último Automático</span>
+                                    <RefreshCw size={18} className="group-hover:rotate-180 transition-transform" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Import Section */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
+                        <div className="flex-1">
+                            <h2 className="text-lg font-bold text-gray-900 mb-2">Restaurar Dados</h2>
+                            <p className="text-sm text-gray-500 mb-6">Carregue um arquivo de backup (.json) para restaurar o sistema. Cuidado: Isso apagará os dados atuais.</p>
+                            
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                                <div className="flex items-center">
+                                    <AlertTriangle className="text-red-500 mr-2" size={20} />
+                                    <p className="text-xs text-red-700 font-bold uppercase">Zona de Perigo</p>
+                                </div>
+                                <p className="text-xs text-red-600 mt-1">
+                                    A restauração sobrescreve o banco de dados atual imediatamente.
+                                </p>
+                            </div>
+
+                            <input 
+                                type="file" 
+                                ref={fileInputRef}
+                                accept=".json"
+                                onChange={handleRestore}
+                                className="hidden"
+                            />
+                            
+                            <Button variant="danger" onClick={() => fileInputRef.current?.click()} className="w-full justify-between">
+                                <span>Carregar Arquivo de Backup</span>
+                                <Upload size={18} />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { Calendar, Target, Clock, Book } from 'lucide-react';
 
 const StudyPlan: React.FC = () => {
   const [goal, setGoal] = useState('');
-  const [level, setLevel] = useState<Difficulty>(Difficulty.INTERMEDIATE);
+  const [level, setLevel] = useState<Difficulty>(Difficulty.B1);
   const [days, setDays] = useState(3);
   const [plan, setPlan] = useState<IStudyPlan | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,9 +55,9 @@ const StudyPlan: React.FC = () => {
                   onChange={(e) => setLevel(e.target.value as Difficulty)}
                   className="w-full p-3 border border-gray-200 rounded-lg bg-white"
                 >
-                  <option value={Difficulty.BEGINNER}>Beginner</option>
-                  <option value={Difficulty.INTERMEDIATE}>Intermediate</option>
-                  <option value={Difficulty.ADVANCED}>Advanced</option>
+                  {Object.values(Difficulty).map((lvl) => (
+                    <option key={lvl} value={lvl}>{lvl}</option>
+                  ))}
                 </select>
                </div>
                <div>
