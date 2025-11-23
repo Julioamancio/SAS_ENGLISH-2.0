@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../services/mockDb';
 import { User } from '../types';
 import Button from '../components/Button';
-import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon, Lock } from 'lucide-react';
+import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon, Lock, Image, X } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -10,11 +10,12 @@ import { Navigate } from 'react-router-dom';
 const SystemSettings: React.FC = () => {
   const { user } = useAuth();
   const { notify } = useNotification();
-  const [activeTab, setActiveTab] = useState<'users' | 'backup'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'backup' | 'branding'>('users');
   
   // Backup State
   const [lastBackupTime, setLastBackupTime] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // User Management State
   const [users, setUsers] = useState<User[]>([]);
@@ -22,6 +23,9 @@ const SystemSettings: React.FC = () => {
   
   // New Teacher Form
   const [newTeacher, setNewTeacher] = useState({ name: '', email: '', password: '' });
+
+  // Branding State
+  const [currentLogo, setCurrentLogo] = useState<string | null>(null);
 
   // SECURITY CHECK
   if (user?.role === 'student') {
@@ -38,10 +42,42 @@ const SystemSettings: React.FC = () => {
     }
     // Load Users
     setUsers(db.users.getAll());
+    // Load Logo
+    setCurrentLogo(db.system.getLogo());
   }, []);
 
   const refreshUsers = () => {
       setUsers(db.users.getAll());
+  };
+
+  // --- LOGO HANDLERS ---
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) { // 2MB Limit
+          notify('error', 'A imagem deve ter no máximo 2MB.');
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          const base64 = reader.result as string;
+          db.system.setLogo(base64);
+          setCurrentLogo(base64);
+          notify('success', 'Logo atualizada! A página será recarregada.');
+          setTimeout(() => window.location.reload(), 1500);
+      };
+      reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+      if(window.confirm('Deseja remover a logo personalizada e voltar ao padrão?')) {
+          db.system.removeLogo();
+          setCurrentLogo(null);
+          notify('info', 'Logo removida. Recarregando...');
+          setTimeout(() => window.location.reload(), 1500);
+      }
   };
 
   // --- BACKUP HANDLERS ---
@@ -157,10 +193,10 @@ const SystemSettings: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-6">
+        <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
             <button 
                 onClick={() => setActiveTab('users')}
-                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 ${
+                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 whitespace-nowrap ${
                     activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
             >
@@ -168,12 +204,22 @@ const SystemSettings: React.FC = () => {
             </button>
             <button 
                 onClick={() => setActiveTab('backup')}
-                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 ${
+                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 whitespace-nowrap ${
                     activeTab === 'backup' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
             >
                 <Database size={18} className="mr-2" /> Backup & Restauração
             </button>
+            {isAdmin && (
+            <button 
+                onClick={() => setActiveTab('branding')}
+                className={`px-6 py-3 font-medium text-sm flex items-center transition-colors border-b-2 whitespace-nowrap ${
+                    activeTab === 'branding' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+            >
+                <Image size={18} className="mr-2" /> Personalização (Logo)
+            </button>
+            )}
         </div>
 
         {/* --- USERS TAB --- */}
@@ -207,13 +253,15 @@ const SystemSettings: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Senha Inicial</label>
-                                <input 
-                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                                    placeholder="******"
-                                    type="text"
-                                    value={newTeacher.password}
-                                    onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
-                                />
+                                <div className="relative">
+                                    <input 
+                                        className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                        placeholder="******"
+                                        type="text"
+                                        value={newTeacher.password}
+                                        onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="mt-4 flex justify-end">
@@ -264,7 +312,8 @@ const SystemSettings: React.FC = () => {
                                                     </code>
                                                     <button 
                                                         onClick={() => togglePassword(u.id)}
-                                                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                        className="bg-transparent text-gray-700 hover:text-gray-900 p-1 rounded transition-colors"
+                                                        title={showPasswords[u.id] ? "Ocultar" : "Ver"}
                                                     >
                                                         {showPasswords[u.id] ? <EyeOff size={16} /> : <Eye size={16} />}
                                                     </button>
@@ -293,6 +342,54 @@ const SystemSettings: React.FC = () => {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- BRANDING TAB (LOGO) --- */}
+        {activeTab === 'branding' && isAdmin && (
+            <div className="space-y-6 animate-fade-in">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <Image className="mr-2 text-blue-600" /> Logo da Instituição
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-6">
+                        Faça upload de uma imagem para substituir o ícone padrão no login e na barra lateral.
+                        <br/>Recomendado: Arquivo PNG com fundo transparente (Max 2MB).
+                    </p>
+
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                        <div className="w-full md:w-1/3 flex flex-col items-center p-6 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
+                            <span className="text-xs font-bold text-gray-400 mb-4 uppercase">Pré-visualização Atual</span>
+                            {currentLogo ? (
+                                <img src={currentLogo} alt="Logo Atual" className="max-h-32 object-contain" />
+                            ) : (
+                                <div className="w-24 h-24 bg-blue-700 rounded-lg flex items-center justify-center text-white">
+                                    <GraduationCap size={48} />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex-1 space-y-4">
+                            <input 
+                                type="file" 
+                                ref={logoInputRef}
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleLogoUpload}
+                            />
+                            
+                            <Button onClick={() => logoInputRef.current?.click()} className="w-full">
+                                <Upload size={18} className="mr-2" /> Escolher Nova Imagem
+                            </Button>
+
+                            {currentLogo && (
+                                <Button variant="outline" onClick={handleRemoveLogo} className="w-full text-red-600 hover:bg-red-50 border-red-200">
+                                    <X size={18} className="mr-2" /> Remover Logo e Restaurar Padrão
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

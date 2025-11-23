@@ -11,7 +11,8 @@ const KEYS = {
   QUIZ_ATTEMPTS: 'sas_quiz_attempts',
   USERS: 'sas_users',
   AUTO_BACKUP: 'sas_auto_backup',
-  BACKUP_TIMESTAMP: 'sas_backup_timestamp'
+  BACKUP_TIMESTAMP: 'sas_backup_timestamp',
+  SYSTEM_LOGO: 'sas_system_logo'
 };
 
 // Default Stages configuration
@@ -35,6 +36,32 @@ const seedData = () => {
       };
       localStorage.setItem(KEYS.USERS, JSON.stringify([...existingUsers, adminUser]));
   }
+  
+  // Sync students without login
+  const students = JSON.parse(localStorage.getItem(KEYS.STUDENTS) || '[]');
+  const users = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+  let usersChanged = false;
+
+  students.forEach((s: Student) => {
+      // Check if user exists (case insensitive email check)
+      const exists = users.find((u: User) => u.email.toLowerCase() === s.email.toLowerCase());
+      if (!exists) {
+          const newUser: User = {
+              id: s.id,
+              name: s.name,
+              email: s.email,
+              role: 'student',
+              password: '123'
+          };
+          users.push(newUser);
+          usersChanged = true;
+      }
+  });
+
+  if (usersChanged) {
+      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
+      console.log('Synchronized student logins.');
+  }
 
   if (localStorage.getItem(KEYS.CLASSES)) return;
 
@@ -57,23 +84,11 @@ const seedData = () => {
     }
   ];
 
-  const students: Student[] = [
+  const seedStudents: Student[] = [
     { id: 's1', name: 'Alice Silva', email: 'alice@exemplo.com', enrollmentDate: '2024-01-15' },
     { id: 's2', name: 'Bruno Souza', email: 'bruno@exemplo.com', enrollmentDate: '2024-01-16' },
     { id: 's3', name: 'Carlos Lima', email: 'carlos@exemplo.com', enrollmentDate: '2024-01-20' },
   ];
-
-  // Create login users for seeded students
-  const studentUsers: User[] = students.map(s => ({
-      id: s.id,
-      name: s.name,
-      email: s.email,
-      role: 'student',
-      password: '123' // Default password for seeded data
-  }));
-  
-  const currentUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
-  localStorage.setItem(KEYS.USERS, JSON.stringify([...currentUsers, ...studentUsers]));
 
   const enrollments: Enrollment[] = [
     { classId: 'c1', studentId: 's1', active: true },
@@ -92,7 +107,7 @@ const seedData = () => {
   ];
 
   localStorage.setItem(KEYS.CLASSES, JSON.stringify(classes));
-  localStorage.setItem(KEYS.STUDENTS, JSON.stringify(students));
+  localStorage.setItem(KEYS.STUDENTS, JSON.stringify(seedStudents));
   localStorage.setItem(KEYS.ENROLLMENTS, JSON.stringify(enrollments));
   localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(activities));
   localStorage.setItem(KEYS.GRADES, JSON.stringify(grades));
@@ -119,7 +134,7 @@ export const db = {
     delete: (userId: string) => {
         set(KEYS.USERS, get<User>(KEYS.USERS).filter(u => u.id !== userId));
     },
-    find: (email: string) => get<User>(KEYS.USERS).find(u => u.email === email)
+    find: (email: string) => get<User>(KEYS.USERS).find(u => u.email.toLowerCase() === email.toLowerCase())
   },
 
   classes: {
@@ -143,9 +158,12 @@ export const db = {
         // Remove enrollments for this class
         set(KEYS.ENROLLMENTS, allEnrollments.filter(e => e.classId !== classId));
 
-        // 3. Delete Students
+        // 3. Delete Students (and their Users)
         const remainingStudents = get<Student>(KEYS.STUDENTS).filter(s => !studentIdsToDelete.includes(s.id));
         set(KEYS.STUDENTS, remainingStudents);
+
+        const remainingUsers = get<User>(KEYS.USERS).filter(u => !studentIdsToDelete.includes(u.id));
+        set(KEYS.USERS, remainingUsers);
 
         // 4. Delete Activities
         const remainingActivities = get<Activity>(KEYS.ACTIVITIES).filter(a => a.classId !== classId);
@@ -240,7 +258,6 @@ export const db = {
           const totalXP = attempts.reduce((sum, a) => sum + a.xpEarned, 0);
           const totalQuizzes = attempts.length;
           
-          // Simple Leveling System: 100 XP per level
           const level = Math.floor(totalXP / 500) + 1;
           const nextLevelXP = level * 500;
           const progress = totalXP - ((level - 1) * 500);
@@ -260,7 +277,8 @@ export const db = {
               enrollments: get(KEYS.ENROLLMENTS),
               feedbacks: get(KEYS.FEEDBACKS),
               quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              logo: localStorage.getItem(KEYS.SYSTEM_LOGO)
           };
           return JSON.stringify(data);
       },
@@ -277,6 +295,7 @@ export const db = {
               set(KEYS.ENROLLMENTS, data.enrollments || []);
               set(KEYS.FEEDBACKS, data.feedbacks || []);
               set(KEYS.QUIZ_ATTEMPTS, data.quizAttempts || []);
+              if (data.logo) localStorage.setItem(KEYS.SYSTEM_LOGO, data.logo);
               return true;
           } catch (e) {
               console.error(e);
@@ -293,12 +312,16 @@ export const db = {
             enrollments: get(KEYS.ENROLLMENTS),
             feedbacks: get(KEYS.FEEDBACKS),
             quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
+            logo: localStorage.getItem(KEYS.SYSTEM_LOGO),
             timestamp: new Date().toISOString()
         };
         localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));
         localStorage.setItem(KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
       },
       getAutoBackup: () => localStorage.getItem(KEYS.AUTO_BACKUP),
-      getLastBackupTime: () => localStorage.getItem(KEYS.BACKUP_TIMESTAMP)
+      getLastBackupTime: () => localStorage.getItem(KEYS.BACKUP_TIMESTAMP),
+      setLogo: (base64: string) => localStorage.setItem(KEYS.SYSTEM_LOGO, base64),
+      getLogo: () => localStorage.getItem(KEYS.SYSTEM_LOGO),
+      removeLogo: () => localStorage.removeItem(KEYS.SYSTEM_LOGO)
   }
 };

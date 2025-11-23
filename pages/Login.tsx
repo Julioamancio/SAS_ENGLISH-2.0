@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { db } from '../services/mockDb';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('admin@sas.com');
   const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [logo, setLogo] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedLogo = db.system.getLogo();
+    if(savedLogo) setLogo(savedLogo);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +32,13 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-100 p-8">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
-            <ShieldCheck size={40} />
-          </div>
+          {logo ? (
+              <img src={logo} alt="Institution Logo" className="h-20 object-contain" />
+          ) : (
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
+                <ShieldCheck size={40} />
+              </div>
+          )}
         </div>
         
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">SAS English</h2>
@@ -46,13 +58,23 @@ const Login: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+                <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-10"
+                    placeholder="••••••••"
+                />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center bg-transparent text-gray-700 hover:text-gray-900 focus:outline-none"
+                    style={{ background: 'transparent' }}
+                >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+            </div>
           </div>
 
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}

@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Users, BookOpen, LogOut, GraduationCap, Settings, Library } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../services/mockDb';
 
 const Navigation: React.FC = () => {
   const { logout, user } = useAuth();
+  const [logo, setLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+      const savedLogo = db.system.getLogo();
+      if(savedLogo) setLogo(savedLogo);
+  }, []);
 
   // Define permissions
   const isStudent = user?.role === 'student';
@@ -38,10 +45,14 @@ const Navigation: React.FC = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:relative md:w-64 md:h-screen md:flex-col md:border-r md:border-t-0 flex justify-between md:justify-start">
       <div className="hidden md:flex flex-col p-6 border-b border-gray-100 mb-4">
         <div className="flex items-center">
-            <div className="w-8 h-8 bg-blue-700 rounded-lg mr-3 flex items-center justify-center text-white font-bold">
-                <GraduationCap size={18} />
-            </div>
-            <span className="text-xl font-bold text-gray-800">SAS English</span>
+            {logo ? (
+                <img src={logo} alt="Logo" className="h-8 max-w-[150px] object-contain mr-2" />
+            ) : (
+                <div className="w-8 h-8 bg-blue-700 rounded-lg mr-3 flex items-center justify-center text-white font-bold flex-shrink-0">
+                    <GraduationCap size={18} />
+                </div>
+            )}
+            {!logo && <span className="text-xl font-bold text-gray-800">SAS English</span>}
         </div>
         <div className="mt-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
             {user?.role === 'admin' ? 'Administrador' : user?.role === 'teacher' ? 'Professor' : 'Aluno'}
