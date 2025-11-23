@@ -20,13 +20,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (email: string, pass: string) => {
-    // Hardcoded credentials as per README requirements
+    // 1. Tenta encontrar no banco de dados (Alunos, Professores, Admin)
+    const dbUser = db.users.find(email);
+    
+    if (dbUser) {
+        // Verifica a senha (em produção usaria hash/bcrypt)
+        if (dbUser.password === pass) {
+            setUser(dbUser);
+            localStorage.setItem('sas_user', JSON.stringify(dbUser));
+            return true;
+        }
+    }
+
+    // 2. Fallback para Admin Hardcoded (caso o seed não tenha rodado)
     if (email === 'admin@sas.com' && pass === 'admin123') {
-      const u: User = { id: 'admin', name: 'Admin User', email, role: 'admin' };
+      const u: User = { id: 'admin', name: 'Administrador', email, role: 'admin' };
       setUser(u);
       localStorage.setItem('sas_user', JSON.stringify(u));
       return true;
     }
+
     return false;
   };
 

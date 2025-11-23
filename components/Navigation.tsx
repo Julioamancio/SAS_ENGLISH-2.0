@@ -6,13 +6,33 @@ import { useAuth } from '../context/AuthContext';
 const Navigation: React.FC = () => {
   const { logout, user } = useAuth();
 
-  const navItems = [
-    { to: "/", icon: <LayoutDashboard size={20} />, label: "Painel" },
-    { to: "/classes", icon: <Users size={20} />, label: "Turmas e Alunos" },
-    { to: "/grammar-book", icon: <Library size={20} />, label: "Grammar Book" },
-    { to: "/ai-tools", icon: <BookOpen size={20} />, label: "Ferramentas IA" },
-    { to: "/settings", icon: <Settings size={20} />, label: "Configurações" },
-  ];
+  // Define permissions
+  const isStudent = user?.role === 'student';
+  const isAdmin = user?.role === 'admin';
+  const isTeacher = user?.role === 'teacher';
+
+  const getNavItems = () => {
+    const items = [];
+
+    // 1. Dashboard & Classes (Admin & Teacher Only)
+    if (isAdmin || isTeacher) {
+        items.push({ to: "/", icon: <LayoutDashboard size={20} />, label: "Painel" });
+        items.push({ to: "/classes", icon: <Users size={20} />, label: "Turmas e Alunos" });
+    }
+
+    // 2. Learning Tools (Everyone)
+    items.push({ to: "/grammar-book", icon: <Library size={20} />, label: "Grammar Book" });
+    items.push({ to: "/ai-tools", icon: <BookOpen size={20} />, label: "Ferramentas IA" });
+
+    // 3. Settings (Admin & Teacher Only - Logic handled inside page for specific permissions)
+    if (isAdmin || isTeacher) {
+        items.push({ to: "/settings", icon: <Settings size={20} />, label: "Configurações" });
+    }
+
+    return items;
+  };
+
+  const navItems = getNavItems();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:relative md:w-64 md:h-screen md:flex-col md:border-r md:border-t-0 flex justify-between md:justify-start">
@@ -24,17 +44,17 @@ const Navigation: React.FC = () => {
             <span className="text-xl font-bold text-gray-800">SAS English</span>
         </div>
         <div className="mt-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            {user?.role === 'admin' ? 'Administrador' : 'Professor'}
+            {user?.role === 'admin' ? 'Administrador' : user?.role === 'teacher' ? 'Professor' : 'Aluno'}
         </div>
       </div>
       
-      <div className="flex md:flex-col w-full px-2 md:px-4 py-2 md:py-0 md:space-y-2 flex-1">
+      <div className="flex md:flex-col w-full px-2 md:px-4 py-2 md:py-0 md:space-y-2 flex-1 overflow-x-auto md:overflow-visible">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex flex-col md:flex-row items-center md:space-x-3 p-2 md:px-4 md:py-3 rounded-lg transition-all duration-200 
+              `flex flex-col md:flex-row items-center md:space-x-3 p-2 md:px-4 md:py-3 rounded-lg transition-all duration-200 whitespace-nowrap
               ${isActive 
                 ? 'text-blue-700 bg-blue-50 font-medium' 
                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Users, BookOpen, GraduationCap, TrendingUp } from 'lucide-react';
 import { db } from '../services/mockDb';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     classes: 0,
     students: 0,
@@ -11,6 +14,11 @@ const Dashboard: React.FC = () => {
   });
   
   const [chartData, setChartData] = useState<{label: string, value: number, color: string}[]>([]);
+
+  // SECURITY CHECK: Students cannot view dashboard
+  if (user?.role === 'student') {
+      return <Navigate to="/grammar-book" replace />;
+  }
 
   useEffect(() => {
     // Force refresh DB data
@@ -56,7 +64,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Painel do Administrador</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Painel do {user?.role === 'admin' ? 'Administrador' : 'Professor'}</h1>
           <p className="text-gray-500 mt-1">Visão geral do desempenho escolar</p>
         </div>
       </div>

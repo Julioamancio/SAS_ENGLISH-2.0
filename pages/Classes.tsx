@@ -3,12 +3,19 @@ import { db, DEFAULT_STAGES } from '../services/mockDb';
 import { ClassGroup } from '../types';
 import Button from '../components/Button';
 import { Plus, ChevronRight, Calendar, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Classes: React.FC = () => {
+  const { user } = useAuth();
   const [classes, setClasses] = useState<ClassGroup[]>(db.classes.getAll());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newClass, setNewClass] = useState({ name: '', level: 'A1', schedule: '' });
+
+  // SECURITY CHECK
+  if (user?.role === 'student') {
+      return <Navigate to="/grammar-book" replace />;
+  }
 
   const handleAddClass = () => {
     if(!newClass.name) return;
@@ -17,7 +24,7 @@ const Classes: React.FC = () => {
         name: newClass.name,
         level: newClass.level,
         schedule: newClass.schedule,
-        teacherId: 'admin',
+        teacherId: user?.id || 'admin',
         stages: DEFAULT_STAGES // Etapas padrão
     };
     db.classes.add(cls);

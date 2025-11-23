@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../services/mockDb';
 import { User } from '../types';
 import Button from '../components/Button';
-import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon } from 'lucide-react';
+import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon, Lock } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 const SystemSettings: React.FC = () => {
+  const { user } = useAuth();
   const { notify } = useNotification();
   const [activeTab, setActiveTab] = useState<'users' | 'backup'>('users');
   
@@ -19,6 +22,13 @@ const SystemSettings: React.FC = () => {
   
   // New Teacher Form
   const [newTeacher, setNewTeacher] = useState({ name: '', email: '', password: '' });
+
+  // SECURITY CHECK
+  if (user?.role === 'student') {
+      return <Navigate to="/grammar-book" replace />;
+  }
+
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     // Check auto backup timestamp
@@ -94,6 +104,8 @@ const SystemSettings: React.FC = () => {
   // --- USER HANDLERS ---
 
   const handleCreateTeacher = () => {
+      if (!isAdmin) return;
+
       if(!newTeacher.name || !newTeacher.email || !newTeacher.password) {
           notify('error', 'Preencha todos os campos.');
           return;
@@ -120,6 +132,7 @@ const SystemSettings: React.FC = () => {
   };
 
   const handleDeleteUser = (userId: string) => {
+      if (!isAdmin) return;
       if(userId === 'admin') {
           notify('error', 'Não é possível remover o Administrador principal.');
           return;
@@ -132,6 +145,7 @@ const SystemSettings: React.FC = () => {
   };
 
   const togglePassword = (userId: string) => {
+      if (!isAdmin) return;
       setShowPasswords(prev => ({...prev, [userId]: !prev[userId]}));
   };
 
@@ -150,7 +164,7 @@ const SystemSettings: React.FC = () => {
                     activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
             >
-                <Users size={18} className="mr-2" /> Gestão de Usuários e Senhas
+                <Users size={18} className="mr-2" /> Gestão de Usuários
             </button>
             <button 
                 onClick={() => setActiveTab('backup')}
@@ -166,53 +180,59 @@ const SystemSettings: React.FC = () => {
         {activeTab === 'users' && (
             <div className="space-y-8">
                 
-                {/* 1. Create Teacher Form */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                        <Plus size={20} className="mr-2 text-blue-600" /> Cadastrar Novo Professor
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                            <input 
-                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                                placeholder="Ex: Prof. João da Silva"
-                                value={newTeacher.name}
-                                onChange={e => setNewTeacher({...newTeacher, name: e.target.value})}
-                            />
+                {/* 1. Create Teacher Form - ADMIN ONLY */}
+                {isAdmin && (
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                            <Plus size={20} className="mr-2 text-blue-600" /> Cadastrar Novo Professor
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                                <input 
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    placeholder="Ex: Prof. João da Silva"
+                                    value={newTeacher.name}
+                                    onChange={e => setNewTeacher({...newTeacher, name: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email de Acesso</label>
+                                <input 
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    placeholder="joao@sas.com"
+                                    value={newTeacher.email}
+                                    onChange={e => setNewTeacher({...newTeacher, email: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Senha Inicial</label>
+                                <input 
+                                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    placeholder="******"
+                                    type="text"
+                                    value={newTeacher.password}
+                                    onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Email de Acesso</label>
-                            <input 
-                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                                placeholder="joao@sas.com"
-                                value={newTeacher.email}
-                                onChange={e => setNewTeacher({...newTeacher, email: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Senha Inicial</label>
-                            <input 
-                                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" 
-                                placeholder="******"
-                                type="text"
-                                value={newTeacher.password}
-                                onChange={e => setNewTeacher({...newTeacher, password: e.target.value})}
-                            />
+                        <div className="mt-4 flex justify-end">
+                            <Button onClick={handleCreateTeacher}>
+                                Cadastrar Professor
+                            </Button>
                         </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
-                        <Button onClick={handleCreateTeacher}>
-                            Cadastrar Professor
-                        </Button>
-                    </div>
-                </div>
+                )}
 
                 {/* 2. User List */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-6 border-b border-gray-100 bg-gray-50">
-                        <h2 className="text-lg font-bold text-gray-900">Todos os Usuários e Senhas</h2>
-                        <p className="text-sm text-gray-500">Visualizar credenciais de alunos e professores.</p>
+                        <h2 className="text-lg font-bold text-gray-900">Todos os Usuários</h2>
+                        <p className="text-sm text-gray-500">
+                            {isAdmin 
+                             ? 'Visualizar e gerenciar credenciais de todos os usuários.' 
+                             : 'Lista de usuários cadastrados no sistema.'}
+                        </p>
                     </div>
                     
                     <div className="overflow-x-auto">
@@ -223,7 +243,7 @@ const SystemSettings: React.FC = () => {
                                     <th className="p-4">Nome</th>
                                     <th className="p-4">Email (Login)</th>
                                     <th className="p-4">Senha</th>
-                                    <th className="p-4 text-right">Ações</th>
+                                    {isAdmin && <th className="p-4 text-right">Ações</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -237,29 +257,38 @@ const SystemSettings: React.FC = () => {
                                         <td className="p-4 font-medium text-gray-900">{u.name}</td>
                                         <td className="p-4 text-gray-600">{u.email}</td>
                                         <td className="p-4">
-                                            <div className="flex items-center space-x-2">
-                                                <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">
-                                                    {showPasswords[u.id] ? u.password : '••••••'}
-                                                </code>
-                                                <button 
-                                                    onClick={() => togglePassword(u.id)}
-                                                    className="text-gray-400 hover:text-blue-600 transition-colors"
-                                                >
-                                                    {showPasswords[u.id] ? <EyeOff size={16} /> : <Eye size={16} />}
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            {u.role !== 'admin' && (
-                                                <button 
-                                                    onClick={() => handleDeleteUser(u.id)}
-                                                    className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Remover Usuário"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                            {isAdmin ? (
+                                                <div className="flex items-center space-x-2">
+                                                    <code className="bg-gray-100 px-2 py-1 rounded text-gray-800 font-mono">
+                                                        {showPasswords[u.id] ? u.password : '••••••'}
+                                                    </code>
+                                                    <button 
+                                                        onClick={() => togglePassword(u.id)}
+                                                        className="text-gray-400 hover:text-blue-600 transition-colors"
+                                                    >
+                                                        {showPasswords[u.id] ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center text-gray-400">
+                                                    <Lock size={14} className="mr-2" />
+                                                    <span>******</span>
+                                                </div>
                                             )}
                                         </td>
+                                        {isAdmin && (
+                                            <td className="p-4 text-right">
+                                                {u.role !== 'admin' && (
+                                                    <button 
+                                                        onClick={() => handleDeleteUser(u.id)}
+                                                        className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Remover Usuário"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -303,7 +332,8 @@ const SystemSettings: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Import Section */}
+                    {/* Import Section - RESTRICTED TO ADMIN */}
+                    {isAdmin && (
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-gray-900 mb-2">Restaurar Dados</h2>
@@ -333,6 +363,13 @@ const SystemSettings: React.FC = () => {
                             </Button>
                         </div>
                     </div>
+                    )}
+                    
+                    {!isAdmin && (
+                        <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 flex items-center justify-center text-gray-400">
+                             <p className="text-sm flex items-center"><Lock size={16} className="mr-2" /> Restauração restrita ao Administrador</p>
+                        </div>
+                    )}
                 </div>
             </div>
         )}

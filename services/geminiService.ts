@@ -6,9 +6,31 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
+// Helper to enforce CEFR complexity
+const getCefrGuidelines = (level: Difficulty): string => {
+  switch (level) {
+    case Difficulty.A1:
+      return "STRICT LEVEL A1 (Beginner): Use ONLY very basic vocabulary (top 500 common words). Sentences must be short and simple (Subject-Verb-Object). Avoid idioms, phrasal verbs, or complex tenses. Focus on concrete, daily topics.";
+    case Difficulty.A2:
+      return "STRICT LEVEL A2 (Elementary): Use basic daily vocabulary. Sentences can use 'and', 'but', 'because'. Grammar limited to Simple Past, Future with 'going to', and basic modals. No complex academic words.";
+    case Difficulty.B1:
+      return "STRICT LEVEL B1 (Intermediate): Use standard English found in work/school. Can use Present Perfect, First Conditional. Text should be straightforward but connected. Avoid overly obscure words.";
+    case Difficulty.B2:
+      return "STRICT LEVEL B2 (Upper Intermediate): Use a wide range of vocabulary including abstract concepts. Complex sentences (relative clauses, conditionals) are expected. Use common phrasal verbs and idioms naturally.";
+    case Difficulty.C1:
+      return "STRICT LEVEL C1 (Advanced): Use sophisticated, academic, or professional vocabulary. Text should be well-structured with complex cohesion. Use inversion, passive voice, and subtle nuances.";
+    case Difficulty.C2:
+      return "STRICT LEVEL C2 (Proficiency): Use native-level sophistication. Include rare vocabulary, complex idioms, cultural references, and literary structures. The text should be indistinguishable from educated native writing.";
+    default:
+      return "Adjust complexity to the target level.";
+  }
+};
+
 export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizMode): Promise<QuizData> => {
   
+  const cefrInstruction = getCefrGuidelines(level);
   let prompt = "";
+  
   const isVisualTopic = mode === 'enem' && (
       topic.includes('Tirinha') || 
       topic.includes('Charge') || 
@@ -20,44 +42,70 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
 
   if (mode === 'enem') {
       if (isVisualTopic) {
-        prompt = `You are an ENEM Exam Creator. The user wants a question about "${topic}" (Level ${level}).
+        prompt = `You are an English Exam Creator preparing students for the ENEM exam. The user wants a question about "${topic}" at CEFR Level ${level}.
         
-        Step 1: Design a visual concept (Cartoon/Charge/Ad) about a social or cultural theme relevant to exams.
-        Step 2: Create a HIGHLY DETAILED image generation prompt that describes this visual concept effectively.
+        ${cefrInstruction}
+        
+        Step 1: Design a visual concept (Cartoon/Charge/Ad) about a social or cultural theme.
+        Step 2: Create a HIGHLY DETAILED image generation prompt that describes this visual concept effectively IN ENGLISH.
         Step 3: Create 4 multiple choice questions that require interpreting that visual concept.
+        
+        The questions and options must match the complexity of ${level}.
+
+        IMPORTANT: ALL CONTENT MUST BE IN ENGLISH. 
+        - The generated image text (bubbles/captions) must be in English.
+        - The questions, options, and explanations must be strictly in English.
 
         Return JSON with:
         - imagePrompt: The prompt to generate the image (in English, detailed).
-        - questions: Array of questions.
+        - questions: Array of questions in English.
         `;
       } else {
         prompt = `Create an advanced English Exam preparation exercise focusing on the genre: "${topic}".
         Target Level: ${level} (CEFR).
         
+        ${cefrInstruction}
+        
         1. Context/Text:
-           - Write a creative and realistic excerpt (approx 150-200 words) typical of this genre.
-           - The text must cover themes relevant to social criticism, history, or culture (typical of ENEM).
+           - Write a creative and realistic excerpt (approx 150-200 words) typical of this genre IN ENGLISH.
+           - The text vocabulary and grammar MUST match the level ${level}.
+           - The text must cover themes relevant to social criticism, history, or culture.
         
         2. Questions:
-           - Create 4 multiple choice questions.
+           - Create 4 multiple choice questions IN ENGLISH.
            - Focus on: Inference, Social Criticism, Main Idea, and Intertextuality.
            - DO NOT ask simple grammar questions. Ask about *meaning* and *interpretation*.
+        
+        IMPORTANT: The entire output (text passage, questions, options, answers, explanations) MUST BE STRICTLY IN ENGLISH.
         `;
       }
   } else if (mode === 'reading') {
       prompt = `Create a Reading Comprehension exercise for an English student at CEFR level ${level}.
       Topic: "${topic}".
-      1. Write an engaging text passage (approx 150 words) appropriate for ${level} level.
+      
+      ${cefrInstruction}
+
+      1. Write an engaging text passage (approx 150-200 words) appropriate for ${level} level IN ENGLISH.
+         - For A1/A2: Keep it very simple, short sentences.
+         - For C1/C2: Use complex sentence structures and advanced vocabulary.
       2. Create 4 multiple choice questions based *strictly* on the text testing comprehension.
+      
+      IMPORTANT: All content (passage, questions, options, explanation) MUST BE STRICTLY IN ENGLISH.
       `;
   } else {
       // Grammar Mode
       prompt = `Create a specific Grammar Quiz for an English student at CEFR level ${level}.
       Specific Topic: "${topic}".
-      1. Create 5 multiple choice questions.
-      2. The questions must specifically test the rules of "${topic}".
-      3. For example, if the topic is "Present Perfect", use questions that distinguish it from Past Simple or test "for/since".
-      4. Provide a clear explanation for the correct answer.
+      
+      ${cefrInstruction}
+
+      1. Create 5 multiple choice questions IN ENGLISH.
+      2. The questions context sentences must match the vocabulary level of ${level}.
+      3. The questions must specifically test the rules of "${topic}".
+      4. For example, if the topic is "Present Perfect", use questions that distinguish it from Past Simple or test "for/since".
+      5. Provide a clear explanation for the correct answer IN ENGLISH.
+      
+      IMPORTANT: All questions, options, and explanations MUST BE STRICTLY IN ENGLISH.
       `;
   }
 
@@ -71,8 +119,8 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            imagePrompt: { type: Type.STRING, description: "Only for visual topics: Detailed prompt for image generation." },
-            passage: { type: Type.STRING, description: "The reading text (required for reading/non-visual enem mode)" },
+            imagePrompt: { type: Type.STRING, description: "Only for visual topics: Detailed prompt for image generation in English." },
+            passage: { type: Type.STRING, description: "The reading text in English (required for reading/non-visual enem mode)" },
             questions: {
                 type: Type.ARRAY,
                 items: {
@@ -104,10 +152,13 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
     // 2. If visual topic, Generate Image
     if (isVisualTopic && data.imagePrompt) {
         try {
+            // Append instruction to ensure text inside image is English
+            const imagePromptEnglish = `${data.imagePrompt}, ensure any text inside the image (speech bubbles, signs) is in ENGLISH. High quality, educational style.`;
+            
             const imageResponse = await ai.models.generateContent({
                 model: IMAGE_MODEL,
                 contents: {
-                    parts: [{ text: data.imagePrompt + " high quality, clear text, educational style" }]
+                    parts: [{ text: imagePromptEnglish }]
                 }
             });
 
@@ -139,7 +190,7 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
 };
 
 export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis> => {
-  const prompt = `Analyze the following English text for grammar, spelling, and style errors. Provide a corrected version and a list of specific errors with explanations. Text: "${textInput}"`;
+  const prompt = `Analyze the following English text for grammar, spelling, and style errors. Provide a corrected version and a list of specific errors with explanations IN ENGLISH. Text: "${textInput}"`;
 
   try {
     const response = await ai.models.generateContent({
@@ -158,11 +209,11 @@ export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis
                 properties: {
                   original: { type: Type.STRING },
                   correction: { type: Type.STRING },
-                  rule: { type: Type.STRING, description: "Grammar rule or reason for correction" }
+                  rule: { type: Type.STRING, description: "Grammar rule or reason for correction in English" }
                 }
               }
             },
-            feedback: { type: Type.STRING, description: "General constructive feedback on writing style and proficiency" }
+            feedback: { type: Type.STRING, description: "General constructive feedback on writing style and proficiency in English" }
           },
           required: ["correctedText", "errors", "feedback"]
         }
@@ -179,7 +230,7 @@ export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis
 };
 
 export const createStudyPlan = async (goal: string, level: Difficulty, days: number): Promise<StudyPlan> => {
-  const prompt = `Create a ${days}-day English study plan for a ${level} student who wants to: ${goal}.`;
+  const prompt = `Create a ${days}-day English study plan for a ${level} student who wants to: ${goal}. The output MUST be in English.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -225,7 +276,7 @@ export const chatWithAi = async (message: string, history: { role: string, parts
       model: TEXT_MODEL,
       history: history,
       config: {
-        systemInstruction: "You are a helpful, encouraging, and highly knowledgeable English tutor named 'SAS AI'. You help students improve their English skills. Keep answers concise but educational.",
+        systemInstruction: "You are a helpful, encouraging, and highly knowledgeable English tutor named 'SAS AI'. You help students improve their English skills. Keep answers concise but educational. ALL RESPONSES MUST BE IN ENGLISH.",
       }
     });
 

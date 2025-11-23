@@ -45,6 +45,10 @@ const ClassDetails: React.FC = () => {
   const [isEditingClass, setIsEditingClass] = useState(false);
   const [editClassData, setEditClassData] = useState({ name: '', level: '', schedule: '' });
 
+  // Delete Confirmation Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+
   const refreshData = () => {
     if(!id) return;
     const currentClass = db.classes.getById(id);
@@ -106,24 +110,26 @@ const ClassDetails: React.FC = () => {
     notify('success', 'Informações da turma atualizadas.');
   };
 
-  const handleDeleteClass = () => {
+  const handleOpenDeleteModal = () => {
+      setDeleteConfirmationText('');
+      setIsDeleteModalOpen(true);
+  };
+
+  const executeDeleteClass = () => {
     if (!cls) return;
-    // Alterado para pedir a palavra "DELETAR" em vez do nome da turma
-    const confirmName = prompt(`ATENÇÃO: Esta ação é irreversível!\n\nPara confirmar a exclusão da turma "${cls.name}" e todos os seus dados (alunos, notas, etc), digite a palavra: DELETAR`);
     
-    if (confirmName === 'DELETAR') {
+    if (deleteConfirmationText === 'DELETAR') {
         try {
             db.classes.delete(cls.id);
             notify('success', 'Turma excluída com sucesso.');
+            setIsDeleteModalOpen(false);
             navigate('/classes');
         } catch (error) {
             console.error(error);
             notify('error', 'Erro ao excluir turma.');
         }
     } else {
-        if (confirmName !== null) { // Só mostra erro se não foi cancelado (cancel = null)
-             notify('error', 'Palavra de confirmação incorreta. Ação cancelada.');
-        }
+        notify('error', 'Palavra de confirmação incorreta.');
     }
   };
 
@@ -736,7 +742,7 @@ const ClassDetails: React.FC = () => {
                      </p>
                      
                      <div className="flex justify-end">
-                         <Button variant="danger" onClick={handleDeleteClass}>
+                         <Button variant="danger" onClick={handleOpenDeleteModal}>
                              Deletar Turma e Alunos
                          </Button>
                      </div>
@@ -809,6 +815,41 @@ const ClassDetails: React.FC = () => {
                                 <RefreshCw size={16} className="mr-2" /> Confirmar Transferência
                             </Button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl max-w-md w-full p-6 animate-fade-in border-2 border-red-500 shadow-xl">
+                    <h2 className="text-xl font-bold text-red-600 mb-2 flex items-center">
+                        <AlertCircle className="mr-2" /> Confirmar Exclusão
+                    </h2>
+                    <p className="mb-4 text-gray-700 text-sm">
+                        Esta ação removerá a turma <strong>{cls.name}</strong>, todos os alunos, notas e históricos associados. Esta ação não pode ser desfeita.
+                    </p>
+                    <div className="mb-6">
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
+                            Digite <span className="text-black select-all">DELETAR</span> para confirmar:
+                        </label>
+                        <input
+                            className="w-full border-2 border-red-200 p-3 rounded-lg focus:border-red-500 focus:ring-red-500 outline-none font-bold text-red-700"
+                            value={deleteConfirmationText}
+                            onChange={e => setDeleteConfirmationText(e.target.value)}
+                            placeholder="DELETAR"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancelar</Button>
+                        <Button 
+                            variant="danger" 
+                            onClick={executeDeleteClass} 
+                            disabled={deleteConfirmationText !== 'DELETAR'}
+                        >
+                            <Trash2 size={16} className="mr-2" /> Confirmar Exclusão
+                        </Button>
                     </div>
                 </div>
             </div>
