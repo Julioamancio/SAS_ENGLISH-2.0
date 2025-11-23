@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, LogOut, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, LogOut, GraduationCap, Settings, Library } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Navigation: React.FC = () => {
@@ -9,7 +9,9 @@ const Navigation: React.FC = () => {
   const navItems = [
     { to: "/", icon: <LayoutDashboard size={20} />, label: "Painel" },
     { to: "/classes", icon: <Users size={20} />, label: "Turmas e Alunos" },
+    { to: "/grammar-book", icon: <Library size={20} />, label: "Grammar Book" },
     { to: "/ai-tools", icon: <BookOpen size={20} />, label: "Ferramentas IA" },
+    { to: "/settings", icon: <Settings size={20} />, label: "Configurações" },
   ];
 
   return (

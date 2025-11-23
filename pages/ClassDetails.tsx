@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { db } from '../services/mockDb';
 import { ClassGroup, Student, Activity, Grade, Feedback, StageConfig } from '../types';
 import Button from '../components/Button';
-import { ArrowLeft, Plus, Users, Book, Award, AlertCircle, FileSpreadsheet, Download, MessageSquare, RefreshCw, Settings, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Book, Award, AlertCircle, FileSpreadsheet, Download, MessageSquare, RefreshCw, Settings, Trash2, Edit2, Save } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useNotification } from '../context/NotificationContext';
 
 const ClassDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { notify } = useNotification();
   
   const [cls, setCls] = useState<ClassGroup | undefined>(db.classes.getById(id || ''));
@@ -36,14 +37,27 @@ const ClassDetails: React.FC = () => {
   // States for Feedback
   const [selectedFeedbackStageId, setSelectedFeedbackStageId] = useState<string>('');
 
-  // States for Stage Management
+  // States for Settings (Stages & Class Edit)
   const [newStageName, setNewStageName] = useState('');
   const [newStagePoints, setNewStagePoints] = useState(30);
+  
+  // Class Edit State
+  const [isEditingClass, setIsEditingClass] = useState(false);
+  const [editClassData, setEditClassData] = useState({ name: '', level: '', schedule: '' });
 
   const refreshData = () => {
     if(!id) return;
     const currentClass = db.classes.getById(id);
     setCls(currentClass);
+    
+    if (currentClass) {
+        setEditClassData({
+            name: currentClass.name,
+            level: currentClass.level,
+            schedule: currentClass.schedule
+        });
+    }
+
     setStudents(db.students.getByClass(id));
     setActivities(db.activities.getByClass(id));
     
@@ -80,6 +94,28 @@ const ClassDetails: React.FC = () => {
 
   const getStageTotal = (stageId: string) => {
     return activities.filter(a => a.stageId === stageId).reduce((sum, a) => sum + a.maxPoints, 0);
+  };
+
+  // --- Handlers for Class Edit/Delete ---
+  const handleUpdateClass = () => {
+    if (!cls) return;
+    const updated = { ...cls, ...editClassData };
+    db.classes.update(updated);
+    setIsEditingClass(false);
+    refreshData();
+    notify('success', 'Informações da turma atualizadas.');
+  };
+
+  const handleDeleteClass = () => {
+    if (!cls) return;
+    const confirmName = prompt(`Para deletar esta turma e TODOS OS DADOS (alunos, notas, etc), digite o nome da turma: "${cls.name}"`);
+    if (confirmName === cls.name) {
+        db.classes.delete(cls.id);
+        notify('info', 'Turma excluída com sucesso.');
+        navigate('/classes');
+    } else {
+        notify('error', 'Nome incorreto. Exclusão cancelada.');
+    }
   };
 
   // --- Handlers for Stages ---
@@ -545,54 +581,126 @@ const ClassDetails: React.FC = () => {
             </div>
         )}
 
-        {/* --- SETTINGS TAB (Stage Management) --- */}
+        {/* --- SETTINGS TAB (Class Edit & Stage Management) --- */}
         {activeTab === 'settings' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="font-bold text-gray-900 mb-6">Configuração de Etapas de Avaliação</h3>
+            <div className="space-y-6">
                 
-                <div className="space-y-4 mb-8">
-                    {cls.stages.map(stage => (
-                        <div key={stage.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                            <div>
-                                <span className="font-medium text-gray-900">{stage.name}</span>
-                                <span className="ml-3 text-sm text-gray-500">Max Pontos: {stage.maxPoints}</span>
-                            </div>
-                            <button 
-                                onClick={() => handleDeleteStage(stage.id)}
-                                className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded"
-                            >
-                                <Trash2 size={16} />
-                            </button>
+                {/* 1. Class Details Edit */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex justify-between items-center mb-6">
+                         <h3 className="font-bold text-gray-900 text-lg">Detalhes da Turma</h3>
+                         {!isEditingClass ? (
+                            <Button variant="outline" size="sm" onClick={() => setIsEditingClass(true)}>
+                                <Edit2 size={16} className="mr-2" /> Editar
+                            </Button>
+                         ) : (
+                             <div className="flex space-x-2">
+                                <Button variant="outline" size="sm" onClick={() => setIsEditingClass(false)}>Cancelar</Button>
+                                <Button size="sm" onClick={handleUpdateClass}>
+                                    <Save size={16} className="mr-2" /> Salvar
+                                </Button>
+                             </div>
+                         )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Nome da Turma</label>
+                            <input 
+                                className="w-full border p-2 rounded text-sm disabled:bg-gray-50 disabled:text-gray-500"
+                                value={editClassData.name}
+                                onChange={e => setEditClassData({...editClassData, name: e.target.value})}
+                                disabled={!isEditingClass}
+                            />
                         </div>
-                    ))}
-                    {cls.stages.length === 0 && <p className="text-gray-400 italic">Nenhuma etapa configurada.</p>}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Nível</label>
+                            <input 
+                                className="w-full border p-2 rounded text-sm disabled:bg-gray-50 disabled:text-gray-500"
+                                value={editClassData.level}
+                                onChange={e => setEditClassData({...editClassData, level: e.target.value})}
+                                disabled={!isEditingClass}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">Horário</label>
+                            <input 
+                                className="w-full border p-2 rounded text-sm disabled:bg-gray-50 disabled:text-gray-500"
+                                value={editClassData.schedule}
+                                onChange={e => setEditClassData({...editClassData, schedule: e.target.value})}
+                                disabled={!isEditingClass}
+                            />
+                        </div>
+                    </div>
                 </div>
 
-                <div className="border-t border-gray-100 pt-6">
-                    <h4 className="text-sm font-bold text-gray-700 mb-3">Adicionar Nova Etapa</h4>
-                    <div className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="flex-1 w-full">
-                            <label className="block text-xs text-gray-500 mb-1">Nome da Etapa</label>
-                            <input 
-                                className="w-full border p-2 rounded text-sm" 
-                                placeholder="Ex: 4ª Etapa / Recuperação"
-                                value={newStageName}
-                                onChange={e => setNewStageName(e.target.value)}
-                            />
-                        </div>
-                        <div className="w-32">
-                            <label className="block text-xs text-gray-500 mb-1">Max Pontos</label>
-                            <input 
-                                type="number" 
-                                className="w-full border p-2 rounded text-sm" 
-                                value={newStagePoints}
-                                onChange={e => setNewStagePoints(parseInt(e.target.value))}
-                            />
-                        </div>
-                        <Button onClick={handleAddStage} disabled={!newStageName}>
-                            <Plus size={16} className="mr-2" /> Adicionar
-                        </Button>
+                {/* 2. Stage Management */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="font-bold text-gray-900 mb-6 text-lg">Etapas de Avaliação</h3>
+                    
+                    <div className="space-y-4 mb-8">
+                        {cls.stages.map(stage => (
+                            <div key={stage.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div>
+                                    <span className="font-medium text-gray-900">{stage.name}</span>
+                                    <span className="ml-3 text-sm text-gray-500">Max Pontos: {stage.maxPoints}</span>
+                                </div>
+                                <button 
+                                    onClick={() => handleDeleteStage(stage.id)}
+                                    className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        ))}
+                        {cls.stages.length === 0 && <p className="text-gray-400 italic">Nenhuma etapa configurada.</p>}
                     </div>
+
+                    <div className="border-t border-gray-100 pt-6">
+                        <h4 className="text-sm font-bold text-gray-700 mb-3">Adicionar Nova Etapa</h4>
+                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="flex-1 w-full">
+                                <label className="block text-xs text-gray-500 mb-1">Nome da Etapa</label>
+                                <input 
+                                    className="w-full border p-2 rounded text-sm" 
+                                    placeholder="Ex: 4ª Etapa / Recuperação"
+                                    value={newStageName}
+                                    onChange={e => setNewStageName(e.target.value)}
+                                />
+                            </div>
+                            <div className="w-32">
+                                <label className="block text-xs text-gray-500 mb-1">Max Pontos</label>
+                                <input 
+                                    type="number" 
+                                    className="w-full border p-2 rounded text-sm" 
+                                    value={newStagePoints}
+                                    onChange={e => setNewStagePoints(parseInt(e.target.value))}
+                                />
+                            </div>
+                            <Button onClick={handleAddStage} disabled={!newStageName}>
+                                <Plus size={16} className="mr-2" /> Adicionar
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. Danger Zone */}
+                <div className="bg-red-50 rounded-xl shadow-sm border border-red-200 p-6">
+                     <h3 className="font-bold text-red-700 mb-2 flex items-center">
+                         <AlertCircle size={20} className="mr-2" /> Zona de Perigo
+                     </h3>
+                     <p className="text-sm text-red-600 mb-4">
+                         As ações aqui são irreversíveis. Deletar a turma removerá permanentemente:
+                         <br />• O cadastro da turma.
+                         <br />• Todos os alunos (como solicitado na configuração).
+                         <br />• Todas as notas, atividades e feedbacks.
+                     </p>
+                     
+                     <div className="flex justify-end">
+                         <Button variant="danger" onClick={handleDeleteClass}>
+                             Deletar Turma e Alunos
+                         </Button>
+                     </div>
                 </div>
             </div>
         )}

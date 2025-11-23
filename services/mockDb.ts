@@ -7,7 +7,9 @@ const KEYS = {
   ACTIVITIES: 'sas_activities',
   GRADES: 'sas_grades',
   ENROLLMENTS: 'sas_enrollments',
-  FEEDBACKS: 'sas_feedbacks'
+  FEEDBACKS: 'sas_feedbacks',
+  AUTO_BACKUP: 'sas_auto_backup',
+  BACKUP_TIMESTAMP: 'sas_backup_timestamp'
 };
 
 // Default Stages configuration
@@ -85,6 +87,39 @@ export const db = {
         set(KEYS.CLASSES, [...others, cls]);
     },
     getById: (id: string) => get<ClassGroup>(KEYS.CLASSES).find(c => c.id === id),
+    delete: (classId: string) => {
+        // 1. Delete Class
+        const remainingClasses = get<ClassGroup>(KEYS.CLASSES).filter(c => c.id !== classId);
+        set(KEYS.CLASSES, remainingClasses);
+
+        // 2. Identify Enrollments to delete
+        const allEnrollments = get<Enrollment>(KEYS.ENROLLMENTS);
+        const classEnrollments = allEnrollments.filter(e => e.classId === classId);
+        const studentIdsToDelete = classEnrollments.map(e => e.studentId);
+        
+        // Remove enrollments for this class
+        set(KEYS.ENROLLMENTS, allEnrollments.filter(e => e.classId !== classId));
+
+        // 3. Delete Students (As requested: "todos os alunos também serão deletados")
+        // Note: In a real system, we might check if they are in other classes first.
+        // Here we assume if they are in this class, they go.
+        const remainingStudents = get<Student>(KEYS.STUDENTS).filter(s => !studentIdsToDelete.includes(s.id));
+        set(KEYS.STUDENTS, remainingStudents);
+
+        // 4. Delete Activities
+        const remainingActivities = get<Activity>(KEYS.ACTIVITIES).filter(a => a.classId !== classId);
+        set(KEYS.ACTIVITIES, remainingActivities);
+
+        // 5. Delete Grades (Linked to deleted activities)
+        // Since we don't have easy Join, we just filter grades where activityId no longer exists in remainingActivities
+        const remainingActivityIds = remainingActivities.map(a => a.id);
+        const remainingGrades = get<Grade>(KEYS.GRADES).filter(g => remainingActivityIds.includes(g.activityId));
+        set(KEYS.GRADES, remainingGrades);
+
+        // 6. Delete Feedbacks
+        const remainingFeedbacks = get<Feedback>(KEYS.FEEDBACKS).filter(f => f.classId !== classId);
+        set(KEYS.FEEDBACKS, remainingFeedbacks);
+    }
   },
 
   students: {
@@ -153,5 +188,59 @@ export const db = {
             set(KEYS.ENROLLMENTS, [...all, {classId, studentId, active: true}]);
         }
     }
+  },
+
+  system: {
+      // Export all data
+      backup: () => {
+          const data = {
+              classes: get(KEYS.CLASSES),
+              students: get(KEYS.STUDENTS),
+              activities: get(KEYS.ACTIVITIES),
+              grades: get(KEYS.GRADES),
+              enrollments: get(KEYS.ENROLLMENTS),
+              feedbacks: get(KEYS.FEEDBACKS),
+              timestamp: new Date().toISOString()
+          };
+          return JSON.stringify(data);
+      },
+      // Restore data from JSON string
+      restore: (jsonString: string) => {
+          try {
+              const data = JSON.parse(jsonString);
+              if(!data.classes || !data.students) throw new Error("Arquivo de backup inválido");
+              
+              set(KEYS.CLASSES, data.classes);
+              set(KEYS.STUDENTS, data.students);
+              set(KEYS.ACTIVITIES, data.activities || []);
+              set(KEYS.GRADES, data.grades || []);
+              set(KEYS.ENROLLMENTS, data.enrollments || []);
+              set(KEYS.FEEDBACKS, data.feedbacks || []);
+              return true;
+          } catch (e) {
+              console.error(e);
+              return false;
+          }
+      },
+      // Auto Backup Internal
+      runAutoBackup: () => {
+          const data = {
+            classes: get(KEYS.CLASSES),
+            students: get(KEYS.STUDENTS),
+            activities: get(KEYS.ACTIVITIES),
+            grades: get(KEYS.GRADES),
+            enrollments: get(KEYS.ENROLLMENTS),
+            feedbacks: get(KEYS.FEEDBACKS),
+            timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));
+        localStorage.setItem(KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
+      },
+      getAutoBackup: () => {
+          return localStorage.getItem(KEYS.AUTO_BACKUP);
+      },
+      getLastBackupTime: () => {
+          return localStorage.getItem(KEYS.BACKUP_TIMESTAMP);
+      }
   }
 };

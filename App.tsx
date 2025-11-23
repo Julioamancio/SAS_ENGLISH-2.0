@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
@@ -6,9 +6,12 @@ import Login from './pages/Login';
 import Classes from './pages/Classes';
 import ClassDetails from './pages/ClassDetails';
 import QuizGenerator from './pages/QuizGenerator';
+import SystemSettings from './pages/SystemSettings';
+import GrammarBook from './pages/GrammarBook';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import NotificationToast from './components/NotificationToast';
+import { db } from './services/mockDb';
 
 const ProtectedLayout = () => {
   const { user } = useAuth();
@@ -26,6 +29,21 @@ const ProtectedLayout = () => {
 };
 
 const App: React.FC = () => {
+  
+  // Auto Backup Effect
+  useEffect(() => {
+    // Initial Run check
+    db.init();
+
+    // Set interval for 5 minutes (300000 ms)
+    const backupInterval = setInterval(() => {
+        console.log("Running Auto Backup...");
+        db.system.runAutoBackup();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(backupInterval);
+  }, []);
+
   return (
     <NotificationProvider>
         <AuthProvider>
@@ -37,7 +55,9 @@ const App: React.FC = () => {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/classes" element={<Classes />} />
                 <Route path="/classes/:id" element={<ClassDetails />} />
+                <Route path="/grammar-book" element={<GrammarBook />} />
                 <Route path="/ai-tools" element={<QuizGenerator />} />
+                <Route path="/settings" element={<SystemSettings />} />
             </Route>
             
             <Route path="*" element={<Navigate to="/" replace />} />
