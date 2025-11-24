@@ -3,7 +3,7 @@ import { generateQuiz } from '../services/geminiService';
 import { Difficulty, QuizQuestion, QuizMode, QuizData, QuizAttempt } from '../types';
 import { db } from '../services/mockDb';
 import Button from '../components/Button';
-import { CheckCircle, XCircle, RefreshCw, Trophy, BookOpen, Brain, Zap, ArrowRight, GraduationCap, ChevronDown, ChevronRight, FileText, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Trophy, BookOpen, Brain, Zap, ArrowRight, GraduationCap, ChevronDown, ChevronRight, FileText, Image as ImageIcon, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // --- DATA STRUCTURE FOR TOPICS ---
@@ -456,60 +456,93 @@ const QuizGenerator: React.FC = () => {
        {/* RIGHT COLUMN: Question Area */}
        <div className={`flex-1 flex flex-col ${hasReadingContent ? 'md:w-1/2' : 'max-w-3xl mx-auto w-full'}`}>
            
-           {/* Progress Header */}
-           <div className="flex items-center justify-between mb-4 px-2">
-               <div className="flex items-center space-x-2">
-                   <span className="text-sm font-bold text-gray-500">Questão {currentQuestionIndex + 1} de {quizData?.questions.length}</span>
-               </div>
-               <div className="flex space-x-1">
-                   {quizData?.questions.map((_, idx) => (
-                       <div 
-                        key={idx} 
-                        className={`h-2 w-8 rounded-full transition-colors ${
-                            idx === currentQuestionIndex ? 'bg-blue-600' : 
-                            idx < currentQuestionIndex ? 'bg-green-500' : 'bg-gray-200'
-                        }`} 
-                       />
-                   ))}
-               </div>
-           </div>
-
-           {/* Question Card */}
-           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 flex-1 flex flex-col p-6 md:p-8 relative overflow-hidden">
+           {/* Enhanced Question Card */}
+           <div className="bg-white rounded-3xl shadow-xl border border-gray-100 flex-1 flex flex-col overflow-hidden relative">
                
-               <div className="flex-1 overflow-y-auto">
-                   <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-8 leading-snug">
+               {/* 1. Header with Progress */}
+               <div className="bg-gray-50 p-6 border-b border-gray-100">
+                   <div className="flex items-center justify-between mb-2">
+                       <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                           {quizData?.mode === 'enem' ? 'ENEM CHALLENGE' : 'QUIZ MODE'}
+                       </span>
+                       <span className="text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full text-xs border border-blue-100">
+                           {difficulty}
+                       </span>
+                   </div>
+                   
+                   <div className="flex justify-between items-end mb-3">
+                        <h2 className="text-3xl font-black text-gray-900 leading-none">
+                            <span className="text-gray-300 mr-2 text-xl font-medium">Questão</span> 
+                            {String(currentQuestionIndex + 1).padStart(2, '0')}
+                        </h2>
+                        <span className="text-sm font-medium text-gray-400 mb-1">
+                            de {String(quizData?.questions.length).padStart(2, '0')}
+                        </span>
+                   </div>
+
+                   {/* Modern Progress Bar */}
+                   <div className="flex space-x-1.5 h-1.5">
+                       {quizData?.questions.map((_, idx) => (
+                           <div 
+                            key={idx} 
+                            className={`flex-1 rounded-full transition-all duration-500 ${
+                                idx === currentQuestionIndex ? 'bg-blue-600' : 
+                                idx < currentQuestionIndex ? 'bg-green-400' : 'bg-gray-200'
+                            }`} 
+                           />
+                       ))}
+                   </div>
+               </div>
+
+               {/* 2. Question Text */}
+               <div className="p-6 md:p-8 flex-1 overflow-y-auto">
+                   <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug">
                        {currentQ.question}
                    </h3>
 
+                   {/* 3. Options List */}
                    <div className="space-y-3">
                        {currentQ.options.map((option, idx) => {
                            const isSelected = answers[currentQuestionIndex] === option;
+                           const letter = String.fromCharCode(65 + idx); // A, B, C...
+                           
                            return (
                                <button
                                    key={idx}
                                    onClick={() => handleOptionSelect(option)}
-                                   className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 flex items-center justify-between group
+                                   className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 flex items-center group relative pl-16
                                      ${isSelected 
-                                       ? 'border-blue-600 bg-blue-50 text-blue-800 shadow-md' 
-                                       : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50 text-gray-700'
+                                       ? 'border-blue-600 bg-blue-50/50 shadow-md transform scale-[1.01]' 
+                                       : 'border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm hover:bg-gray-50'
                                      }`}
                                >
-                                   <span className="font-medium text-lg">{option}</span>
-                                   {isSelected && <CheckCircle className="text-blue-600" size={24} />}
+                                   {/* Letter Badge */}
+                                   <div className={`absolute left-4 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg transition-colors
+                                       ${isSelected 
+                                          ? 'bg-blue-600 text-white shadow-sm' 
+                                          : 'bg-gray-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600'
+                                       }`}>
+                                       {isSelected ? <Check size={18} /> : letter}
+                                   </div>
+
+                                   <span className={`font-medium text-lg ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                                       {option}
+                                   </span>
                                </button>
                            );
                        })}
                    </div>
                </div>
 
-               {/* Action Bar */}
-               <div className="mt-8 flex justify-end">
+               {/* 4. Footer Actions */}
+               <div className="p-6 bg-white border-t border-gray-50 flex justify-end">
                    <Button 
                     onClick={handleNext} 
                     disabled={!answers[currentQuestionIndex]}
                     size="lg"
-                    className="w-full md:w-auto px-8"
+                    className={`w-full md:w-auto px-10 py-4 text-lg font-bold shadow-lg transition-all ${
+                        !answers[currentQuestionIndex] ? 'opacity-50' : 'hover:-translate-y-1 hover:shadow-xl'
+                    }`}
                    >
                        {currentQuestionIndex < (quizData?.questions.length || 0) - 1 ? (
                            <>Próxima <ArrowRight className="ml-2" /></>

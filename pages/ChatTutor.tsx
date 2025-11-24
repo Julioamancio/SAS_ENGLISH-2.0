@@ -138,28 +138,29 @@ const ChatTutor: React.FC = () => {
                         {msg.role === 'user' ? (
                             <div className="whitespace-pre-wrap">{msg.text}</div>
                         ) : (
-                            <ReactMarkdown
-                                className="markdown-content space-y-2"
-                                components={{
-                                    p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
-                                    ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2 space-y-1" {...props} />,
-                                    ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2 space-y-1" {...props} />,
-                                    li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                                    h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-2 mb-1" {...props} />,
-                                    h2: ({node, ...props}) => <h2 className="text-base font-bold mt-2 mb-1" {...props} />,
-                                    h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-1" {...props} />,
-                                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-200 pl-3 italic text-gray-500 my-2" {...props} />,
-                                    code: ({node, inline, className, children, ...props}: any) => {
-                                        return inline ? 
-                                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono text-pink-600 border border-gray-200" {...props}>{children}</code> :
-                                            <code className="block bg-gray-800 text-white p-3 rounded-lg text-xs font-mono overflow-x-auto my-2" {...props}>{children}</code>
-                                    },
-                                    a: ({node, ...props}) => <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
-                                    strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                                }}
-                            >
-                                {msg.text}
-                            </ReactMarkdown>
+                            <div className="markdown-content space-y-2">
+                                <ReactMarkdown
+                                    components={{
+                                        p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
+                                        ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2 space-y-1" {...props} />,
+                                        ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2 space-y-1" {...props} />,
+                                        li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                                        h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-2 mb-1" {...props} />,
+                                        h2: ({node, ...props}) => <h2 className="text-base font-bold mt-2 mb-1" {...props} />,
+                                        h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-1" {...props} />,
+                                        blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-200 pl-3 italic text-gray-500 my-2" {...props} />,
+                                        code: ({node, inline, className, children, ...props}: any) => {
+                                            return inline ? 
+                                                <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono text-pink-600 border border-gray-200" {...props}>{children}</code> :
+                                                <code className="block bg-gray-800 text-white p-3 rounded-lg text-xs font-mono overflow-x-auto my-2" {...props}>{children}</code>
+                                        },
+                                        a: ({node, ...props}) => <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                                        strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                                    }}
+                                >
+                                    {msg.text}
+                                </ReactMarkdown>
+                            </div>
                         )}
 
                         {/* Grammar Analysis Report Render */}

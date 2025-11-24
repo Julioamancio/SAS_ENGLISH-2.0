@@ -9,8 +9,12 @@ const Navigation: React.FC = () => {
   const [logo, setLogo] = useState<string | null>(null);
 
   useEffect(() => {
-      const savedLogo = db.system.getLogo();
-      if(savedLogo) setLogo(savedLogo);
+      try {
+          const savedLogo = db.system.getLogo();
+          if(savedLogo) setLogo(savedLogo);
+      } catch(e) {
+          console.error("Failed to load logo", e);
+      }
   }, []);
 
   // Define permissions

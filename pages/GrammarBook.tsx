@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Book, ArrowRight, Zap, CheckCircle, HelpCircle, MinusCircle, PlusCircle, Bookmark, LayoutGrid, List, Clock, User, Link, Layers, AlertTriangle, Lightbulb, XCircle, MapPin, Hash, MessageCircle, Mic, ArrowUpLeft, Type, Quote, MoveRight, ToggleLeft, Check } from 'lucide-react';
+import { Book, ArrowRight, Zap, CheckCircle, HelpCircle, MinusCircle, PlusCircle, Bookmark, LayoutGrid, List, Clock, User, Link, Layers, AlertTriangle, Lightbulb, XCircle, MapPin, Hash, MessageCircle, Split, ArrowUpLeft, Calendar, Type, Check, Music, Star, Smile } from 'lucide-react';
 
 // --- Interfaces ---
 
@@ -50,241 +50,641 @@ const GRAMMAR_DATA: LevelData[] = [
     color: 'text-green-600',
     bg: 'bg-green-600',
     borderColor: 'border-green-200',
-    description: 'Foundation: To Be, Basic Tenses, Pronouns & Prepositions.',
+    description: 'The essential foundation: Verbs, Structures, and Fundamental Vocabulary.',
     topics: [
+      // 1. VERB TO BE
       {
         id: 'a1_tobe',
         title: 'Verb To Be',
         icon: <Zap size={20} />,
         summary: 'Am / Is / Are',
-        definition: 'The most important verb. It describes identity, age, feelings, nationality, and location.',
+        definition: 'The most important verb in English. Used for identity, age, feelings, nationality, and location.',
         deepDive: [
-          'Use AM for "I" (I am).',
-          'Use IS for singular "He, She, It" (He is, The car is).',
+          'Use AM only for "I" (I am).',
+          'Use IS for singular "He, She, It" (He is, The dog is).',
           'Use ARE for plural "You, We, They" (We are, John and Mary are).',
-          'Contractions are very common in speaking: I\'m, You\'re, He\'s.'
+          'Contractions are essential in speaking: I\'m, You\'re, He\'s, It\'s, We\'re, They\'re.'
         ],
-        signalWords: ['Now', 'Today', 'At the moment'],
+        signalWords: ['Today', 'Now', 'Happy', 'Students', 'From Brazil'],
         forms: {
           positive: { 
             structure: 'Subject + am/is/are', 
             examples: [
               'I am a teacher at a local school.', 
+              'I am 25 years old.',
               'She is very happy today.', 
-              'They are my best friends.',
-              'It is cold outside.',
+              'He is my brother.',
+              'It is a beautiful day.',
               'We are from Brazil.',
-              'You are incredibly smart.'
+              'They are my best friends.'
             ] 
           },
           negative: { 
             structure: 'Subject + am/is/are + not', 
             examples: [
               'I am not tired right now.', 
-              'It is not expensive.', 
-              'We are not ready yet.',
+              'He is not (isn\'t) a doctor.',
               'She is not (isn\'t) my sister.',
+              'It is not (isn\'t) expensive.', 
+              'We are not (aren\'t) ready yet.',
               'They are not (aren\'t) at home.'
             ] 
           },
           question: { 
             structure: 'Am/Is/Are + Subject?', 
             examples: [
-              'Are you ok?', 
-              'Is he your brother?', 
               'Am I late for the meeting?',
+              'Is he your brother?', 
+              'Is she American?',
+              'Is it raining outside?',
+              'Are you ok?', 
               'Are we in the right place?',
-              'Is it raining outside?'
+              'Are they students?'
             ] 
           }
         },
         commonMistakes: [
-          { wrong: 'I have 20 years.', right: 'I am 20 years old.', explanation: 'In English, you ARE an age, you do not HAVE it.' },
-          { wrong: 'She are happy.', right: 'She is happy.', explanation: 'She is singular, so use IS.' }
-        ],
-        proTip: 'Native speakers almost always use contractions when speaking. Say "She\'s nice" instead of "She is nice".'
+          { wrong: 'I have 20 years.', right: 'I am 20 years old.', explanation: 'In English, you "ARE" an age, you do not "HAVE" it.' },
+          { wrong: 'She are happy.', right: 'She is happy.', explanation: 'She is singular, use IS.' }
+        ]
       },
+      // 2. PERSONAL PRONOUNS
       {
         id: 'a1_pronouns',
         title: 'Personal Pronouns',
         icon: <User size={20} />,
-        summary: 'I, You, He...',
-        definition: 'Words that replace names to avoid repetition.',
+        summary: 'I, You, He, She...',
+        definition: 'Words that replace names (nouns) to avoid repetition.',
         deepDive: [
-          'Subject Pronouns (I, You, He, She, It, We, They) come BEFORE the verb. They do the action.',
-          'Object Pronouns (Me, You, Him, Her, It, Us, Them) come AFTER the verb. They receive the action.',
-          'Always capitalize "I", even in the middle of a sentence.'
+          'I (Eu) - Always capitalized.',
+          'You (Você/Vocês) - Same for singular and plural.',
+          'He (Ele) - Men/Boys.',
+          'She (Ela) - Women/Girls.',
+          'It (Ele/Ela/Isso) - Objects, Animals, Weather, Time (Never for people!).',
+          'We (Nós) - Me + Others.',
+          'They (Eles/Elas) - Plural for People, Objects, or Animals.'
         ],
         signalWords: [],
         forms: {
           positive: { 
-            structure: 'Subject + Verb + Object', 
+            structure: 'Subject Pronoun + Verb', 
             examples: [
-              'I love him. (Subject I, Object Him)', 
-              'She helps us every day.', 
-              'We know them from school.',
-              'He calls me every night.',
-              'It usually rains here.'
+              'I like pizza.',
+              'You look tired.',
+              'He plays soccer.',
+              'She reads books.',
+              'It is a cat.',
+              'We live here.',
+              'They are coming.'
             ] 
           },
-          negative: { 
-            structure: 'S + Don\'t/Doesn\'t + V + O', 
-            examples: [
-              'I don\'t know her.', 
-              'He doesn\'t like it.',
-              'We don\'t see them often.',
-              'She doesn\'t understand me.'
-            ] 
-          },
-          question: { 
-            structure: 'Do/Does + S + V + O?', 
-            examples: [
-              'Do you like me?', 
-              'Does she see us?',
-              'Do they know him?',
-              'Does it help you?'
-            ] 
-          }
-        }
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        },
+        commonMistakes: [
+          { wrong: 'Is good.', right: 'It is good.', explanation: 'English sentences almost ALWAYS need a subject. Use "It".' }
+        ]
       },
+      // 3. ARTICLES
       {
-        id: 'a1_pres_simple',
-        title: 'Present Simple',
-        icon: <Clock size={20} />,
-        summary: 'Routines & Facts',
-        definition: 'Used for habits, daily routines, general truths, and timetables.',
+        id: 'a1_articles',
+        title: 'Articles (A/An/The)',
+        icon: <Type size={20} />,
+        summary: 'A, An, The',
+        definition: 'Small words that define a noun as specific or unspecific.',
         deepDive: [
-          'For He/She/It, you MUST add -S or -ES to the verb (Works, Goes, Watches).',
-          'Spelling Rule: Consonant + y -> -ies (Study -> Studies).',
-          'Spelling Rule: Ends in ch/sh/s/x/o -> -es (Watch -> Watches, Go -> Goes).',
-          'Use DO/DOES for questions and negatives.'
+          'A: Before consonant sounds (A car, A house, A university).',
+          'AN: Before vowel sounds (An apple, An hour, An elephant).',
+          'THE: Specific things (The moon, The president) or things mentioned before.',
+          'NO ARTICLE: For Plurals in general (I like dogs) or Names (Brazil, John).'
         ],
-        signalWords: ['Always', 'Every day', 'Usually', 'Often', 'Sometimes', 'Never', 'On Mondays'],
+        signalWords: [],
         forms: {
           positive: { 
-            structure: 'S + V(+s/es)', 
+            structure: 'A/An + Singular Noun', 
             examples: [
-              'He works at a bank.', 
-              'I play soccer every weekend.',
-              'The sun rises in the east.',
-              'She studies English every night.',
-              'My train leaves at 8 PM.'
+              'I have a dog.',
+              'She eats an apple.',
+              'He is a doctor.',
+              'It is an hour drive.',
+              'The sun is hot.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        },
+        commonMistakes: [
+          { wrong: 'I have car.', right: 'I have a car.', explanation: 'Singular nouns usually need an article.' }
+        ]
+      },
+      // 4. PLURALS
+      {
+        id: 'a1_plurals',
+        title: 'Regular Plurals',
+        icon: <List size={20} />,
+        summary: '-S / -ES',
+        definition: 'How to make nouns plural (more than one).',
+        deepDive: [
+          'General Rule: Add -S (Car -> Cars).',
+          'Ending in -s, -sh, -ch, -x, -o: Add -ES (Bus -> Buses, Box -> Boxes).',
+          'Ending in Consonant + Y: Remove Y, add -IES (Baby -> Babies).',
+          'Ending in Vowel + Y: Just -S (Boy -> Boys).'
+        ],
+        signalWords: ['Two', 'Many', 'Some'],
+        forms: {
+          positive: { 
+            structure: 'Noun + s/es', 
+            examples: [
+              'One dog, two dogs.',
+              'I have three boxes.',
+              'The babies are crying.',
+              'He has two watches.',
+              'I saw five buses.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        }
+      },
+      // 5. POSSESSIVES
+      {
+        id: 'a1_possessives',
+        title: 'Possessive Adjectives',
+        icon: <User size={20} />,
+        summary: 'My, Your, His...',
+        definition: 'Words that show ownership. They go BEFORE the noun.',
+        deepDive: [
+          'I -> My (My house).',
+          'You -> Your (Your car).',
+          'He -> His (His name).',
+          'She -> Her (Her cat).',
+          'It -> Its (Its tail).',
+          'We -> Our (Our family).',
+          'They -> Their (Their problem).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Possessive + Noun', 
+            examples: [
+              'My name is John.',
+              'This is your book.',
+              'His car is red.',
+              'Her mother is nice.',
+              'Our team won.',
+              'Their house is big.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        },
+        commonMistakes: [
+          { wrong: 'I like the house of she.', right: 'I like her house.', explanation: 'Use possessive adjective + noun.' }
+        ]
+      },
+      // 6. ADJECTIVES
+      {
+        id: 'a1_adjectives',
+        title: 'Common Adjectives',
+        icon: <Star size={20} />,
+        summary: 'Big, Good, Red',
+        definition: 'Words that describe nouns.',
+        deepDive: [
+          'Rule 1: Adjectives NEVER change for plural (Red cars, NOT Reds cars).',
+          'Rule 2: Adjectives go BEFORE the noun (A big house).',
+          'Rule 3: Adjectives go AFTER verb To Be (The house is big).'
+        ],
+        signalWords: ['Very', 'Really'],
+        forms: {
+          positive: { 
+            structure: 'Adj + Noun / Be + Adj', 
+            examples: [
+              'It is a fast car.',
+              'They are good students.',
+              'She is beautiful.',
+              'The test was hard.',
+              'I am happy.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        },
+        commonMistakes: [
+          { wrong: 'I have two blues cars.', right: 'I have two blue cars.', explanation: 'Adjectives have no plural form.' }
+        ]
+      },
+      // 7. SENTENCE ORDER
+      {
+        id: 'a1_order',
+        title: 'Sentence Order (SVO)',
+        icon: <List size={20} />,
+        summary: 'Subject + Verb + Object',
+        definition: 'The strict order of words in English sentences.',
+        deepDive: [
+          'Standard: Subject (Who) + Verb (Action) + Object (What).',
+          'Example: I (S) + Love (V) + Pizza (O).',
+          'Place before Time: I go to school (Place) at 8am (Time).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'S + V + O', 
+            examples: [
+              'I drink coffee.',
+              'She plays tennis.',
+              'We watch TV.',
+              'They speak English.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        }
+      },
+      // 8. PRESENT SIMPLE
+      {
+        id: 'a1_present_simple',
+        title: 'Present Simple',
+        icon: <Clock size={20} />,
+        summary: 'Habits & Facts',
+        definition: 'Used for daily routines, permanent situations, and general facts.',
+        deepDive: [
+          'I/You/We/They: Use Base Verb (I work).',
+          'He/She/It: Add -S (He works).',
+          'Negative: Don\'t (I, You, We, They) / Doesn\'t (He, She, It).',
+          'Question: Do / Does.'
+        ],
+        signalWords: ['Always', 'Every day', 'Usually', 'On Mondays'],
+        forms: {
+          positive: { 
+            structure: 'S + Verb (+s)', 
+            examples: [
+              'I live in Brazil.',
+              'She likes chocolate.',
+              'He works at a bank.',
+              'We study English.',
+              'It rains a lot here.'
             ] 
           },
           negative: { 
-            structure: 'S + don\'t/doesn\'t + V', 
+            structure: 'S + Don\'t/Doesn\'t + Verb', 
             examples: [
-              'I don\'t drink coffee.', 
-              'She doesn\'t eat meat (She\'s vegetarian).',
-              'We don\'t live here.',
-              'He doesn\'t know the answer.',
-              'It doesn\'t work.'
+              'I don\'t eat meat.',
+              'She doesn\'t know him.',
+              'He doesn\'t play piano.',
+              'We don\'t have a car.'
             ] 
           },
           question: { 
-            structure: 'Do/Does + S + V?', 
+            structure: 'Do/Does + S + Verb?', 
             examples: [
-              'Do you live in London?', 
-              'Does she speak French?',
-              'Do they play video games?',
-              'Does John work with you?',
-              'Where do you live?'
+              'Do you speak English?',
+              'Does she live here?',
+              'Do they want coffee?',
+              'Does it work?'
             ] 
           }
         },
         commonMistakes: [
-          { wrong: 'He work here.', right: 'He works here.', explanation: 'Don\'t forget the -S for third person singular.' },
-          { wrong: 'Does she works?', right: 'Does she work?', explanation: 'When you use DOES, the main verb loses the -S.' }
+          { wrong: 'He don\'t like.', right: 'He doesn\'t like.', explanation: 'He/She/It uses DOES/DOESN\'T.' },
+          { wrong: 'Does she works?', right: 'Does she work?', explanation: 'When you use Does, remove the -S from the verb.' }
         ]
       },
+      // 9. PRESENT CONTINUOUS
       {
-        id: 'a1_pres_cont',
+        id: 'a1_present_continuous',
         title: 'Present Continuous',
         icon: <Clock size={20} />,
-        summary: 'Now / Happening',
-        definition: 'Describes actions happening exactly at this moment or temporary situations.',
+        summary: 'Am/Is/Are + -ing',
+        definition: 'Actions happening NOW or around this time.',
         deepDive: [
-          'Formula: Verb To Be (am/is/are) + Verb-ING.',
-          'Spelling: One syllable ending in CVC -> Double last letter (Run -> Running, Sit -> Sitting).',
-          'Spelling: Ends in E -> Remove E (Make -> Making, Write -> Writing).',
-          'Stative Verbs (Like, Love, Know, Want) generally CANNOT be used in continuous.'
+          'Structure: To Be (Am/Is/Are) + Verb-ING.',
+          'Spelling: E drops (Make -> Making). CVC doubles (Run -> Running).'
         ],
-        signalWords: ['Now', 'At the moment', 'Look!', 'Listen!', 'Currently'],
+        signalWords: ['Now', 'At the moment', 'Look!', 'Listen!'],
         forms: {
           positive: { 
-            structure: 'S + be + V-ing', 
+            structure: 'S + Be + V-ing', 
             examples: [
-              'I am eating lunch right now.', 
-              'She is sleeping upstairs.',
-              'They are playing football in the park.',
-              'Look! It is raining.',
-              'We are studying for the exam.'
+              'I am studying now.',
+              'She is sleeping.',
+              'They are playing.',
+              'Look! It is snowing.'
             ] 
           },
           negative: { 
-            structure: 'S + be + not + V-ing', 
+            structure: 'S + Be + Not + V-ing', 
             examples: [
-              'We aren\'t listening to music.',
-              'He isn\'t working today.',
-              'I am not joking.',
-              'They aren\'t coming to the party.'
+              'I am not watching TV.',
+              'He isn\'t listening.',
+              'We aren\'t talking.'
             ] 
           },
           question: { 
             structure: 'Be + S + V-ing?', 
             examples: [
-              'Are you coming?',
+              'Are you working?',
               'Is she crying?',
-              'What are you doing?',
-              'Are they watching TV?',
-              'Why is he running?'
+              'What are you doing?'
             ] 
           }
-        },
-        commonMistakes: [
-          { wrong: 'I am wanting a car.', right: 'I want a car.', explanation: 'WANT is a stative verb, not an action. Use Simple Present.' }
-        ]
+        }
       },
+      // 10. MODAL CAN
       {
-        id: 'a1_prepositions',
-        title: 'Prepositions (Place/Time)',
-        icon: <MapPin size={20} />,
-        summary: 'In / On / At',
-        definition: 'Little words that describe location or time.',
+        id: 'a1_modal_can',
+        title: 'Modal Verb: Can',
+        icon: <Zap size={20} />,
+        summary: 'Ability & Permission',
+        definition: 'Expresses what is possible or allowed.',
         deepDive: [
-          'TIME - AT: Precise time (At 5pm, At noon, At night).',
-          'TIME - ON: Days and Dates (On Sunday, On July 4th, On my birthday).',
-          'TIME - IN: Long periods (In 2024, In July, In the morning/afternoon).',
-          'PLACE - AT: Point/Station (At the door, At work).',
-          'PLACE - ON: Surface/Line (On the table, On the wall, On Main St).',
-          'PLACE - IN: Enclosed space/City/Country (In the box, In London, In Brazil).'
+          'Invariant: Same for all persons (I can, She can).',
+          'Negative: Cannot or Can\'t.',
+          'Main Verb: Always base form (She can swim, NOT She can swims).'
+        ],
+        signalWords: ['Well', 'Fast'],
+        forms: {
+          positive: { 
+            structure: 'S + Can + Verb', 
+            examples: [
+              'I can swim.',
+              'She can speak 3 languages.',
+              'We can help you.',
+              'Birds can fly.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Can\'t + Verb', 
+            examples: [
+              'I can\'t hear you.',
+              'He can\'t drive.',
+              'They can\'t come.'
+            ] 
+          },
+          question: { 
+            structure: 'Can + S + Verb?', 
+            examples: [
+              'Can you help me?',
+              'Can I open the window?',
+              'Can she cook?'
+            ] 
+          }
+        }
+      },
+      // 11. IMPERATIVE
+      {
+        id: 'a1_imperative',
+        title: 'Imperative',
+        icon: <MessageCircle size={20} />,
+        summary: 'Commands',
+        definition: 'Used for orders, instructions, or offers.',
+        deepDive: [
+          'No Subject: Starts directly with the Verb.',
+          'Negative: Don\'t + Verb.',
+          'Polite: Add "Please".'
+        ],
+        signalWords: ['Please'],
+        forms: {
+          positive: { 
+            structure: 'Verb + Object', 
+            examples: [
+              'Open the door.',
+              'Sit down.',
+              'Listen to me.',
+              'Turn right.'
+            ] 
+          },
+          negative: { 
+            structure: 'Don\'t + Verb', 
+            examples: [
+              'Don\'t touch that.',
+              'Don\'t be late.',
+              'Don\'t worry.'
+            ] 
+          },
+          question: { structure: '-', examples: [] }
+        }
+      },
+      // 12. WH-QUESTIONS
+      {
+        id: 'a1_wh_questions',
+        title: 'Wh-Questions',
+        icon: <HelpCircle size={20} />,
+        summary: 'What, Where, Who...',
+        definition: 'Question words used to ask for information.',
+        deepDive: [
+          'What (Object/Action)',
+          'Where (Place)',
+          'When (Time)',
+          'Who (Person)',
+          'Why (Reason)',
+          'How (Manner/State)'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { structure: '-', examples: [] },
+          negative: { structure: '-', examples: [] },
+          question: { 
+            structure: 'Wh + Aux + S + V?', 
+            examples: [
+              'What is your name?',
+              'Where do you live?',
+              'When is the party?',
+              'Who is that?',
+              'Why are you sad?',
+              'How are you?'
+            ] 
+          }
+        }
+      },
+      // 13. YES/NO QUESTIONS
+      {
+        id: 'a1_yesno',
+        title: 'Yes/No Questions',
+        icon: <HelpCircle size={20} />,
+        summary: 'Do you? Are you?',
+        definition: 'Questions that can be answered with a simple Yes or No.',
+        deepDive: [
+          'With To Be: Invert subject (Are you happy?).',
+          'With Verbs: Use Do/Does (Do you like it?).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { structure: '-', examples: [] },
+          negative: { structure: '-', examples: [] },
+          question: { 
+            structure: 'Aux + S + ...?', 
+            examples: [
+              'Are you hungry?',
+              'Is he a student?',
+              'Do you speak English?',
+              'Does she work here?'
+            ] 
+          }
+        }
+      },
+      // 14. PREPOSITIONS PLACE
+      {
+        id: 'a1_prep_place',
+        title: 'Prepositions of Place',
+        icon: <MapPin size={20} />,
+        summary: 'In, On, Under',
+        definition: 'Where things are.',
+        deepDive: [
+          'IN: Inside (In the box, In London).',
+          'ON: Surface (On the table, On the wall).',
+          'UNDER: Below (Under the bed).',
+          'NEXT TO: Beside.'
         ],
         signalWords: [],
         forms: {
           positive: { 
-            structure: 'Prep + Noun', 
+            structure: 'Be + Prep + Noun', 
             examples: [
-              'See you on Monday.', 
-              'My birthday is in May.', 
-              'Meet me at the station at 9 AM.',
+              'The cat is in the box.',
               'The book is on the table.',
-              'She lives in Paris.'
+              'The shoes are under the bed.',
+              'The bank is next to the park.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        }
+      },
+      // 15. PREPOSITIONS TIME
+      {
+        id: 'a1_prep_time',
+        title: 'Prepositions of Time',
+        icon: <Clock size={20} />,
+        summary: 'At, On, In',
+        definition: 'When things happen.',
+        deepDive: [
+          'AT: Clock time (At 5pm) & Festivals (At Christmas).',
+          'ON: Days & Dates (On Monday, On May 1st).',
+          'IN: Months, Years, Seasons, Parts of day (In July, In 2024, In the morning).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Prep + Time', 
+            examples: [
+              'I wake up at 7am.',
+              'The class is on Tuesday.',
+              'My birthday is in October.',
+              'I was born in 1999.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        },
+        commonMistakes: [
+          { wrong: 'In Monday.', right: 'On Monday.', explanation: 'Days always use ON.' }
+        ]
+      },
+      // 16. THIS/THAT
+      {
+        id: 'a1_demonstratives',
+        title: 'Demonstratives',
+        icon: <ArrowRight size={20} />,
+        summary: 'This, That, These, Those',
+        definition: 'Pointing at things near or far.',
+        deepDive: [
+          'THIS: Singular + Near (This pen here).',
+          'THAT: Singular + Far (That car there).',
+          'THESE: Plural + Near (These keys here).',
+          'THOSE: Plural + Far (Those birds there).'
+        ],
+        signalWords: ['Here', 'There'],
+        forms: {
+          positive: { 
+            structure: 'This/That + Is / These/Those + Are', 
+            examples: [
+              'This is my friend.',
+              'That is a nice house.',
+              'These are my shoes.',
+              'Those are beautiful flowers.'
+            ] 
+          },
+          negative: { structure: '-', examples: [] },
+          question: { structure: '-', examples: [] }
+        }
+      },
+      // 17. THERE IS/ARE
+      {
+        id: 'a1_there_is',
+        title: 'Existence',
+        icon: <MapPin size={20} />,
+        summary: 'There is / There are',
+        definition: 'To say that something exists in a place (Haver/Existir).',
+        deepDive: [
+          'There IS: Singular (There is a cat).',
+          'There ARE: Plural (There are two cats).',
+          'Contraction: There\'s.'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'There + Be + Noun', 
+            examples: [
+              'There is a pen on the desk.',
+              'There is a problem.',
+              'There are five students here.',
+              'There are many cars.'
             ] 
           },
           negative: { 
-            structure: '-', 
+            structure: 'There + Be + Not', 
             examples: [
-              'I am not at home.',
-              'The keys aren\'t in the bag.'
+              'There isn\'t any milk.',
+              'There aren\'t any chairs.'
             ] 
           },
           question: { 
-            structure: 'Where/When...?', 
+            structure: 'Is/Are + There...?', 
             examples: [
-              'When is the party?', 
-              'Where are my keys?',
-              'Are you at school?',
-              'Is it in the drawer?'
+              'Is there a bathroom here?',
+              'Are there any questions?'
+            ] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'Have a car in the street.', right: 'There is a car in the street.', explanation: 'Do not use HAVE for existence. Use THERE IS.' }
+        ]
+      },
+      // 18. QUANTIFIERS
+      {
+        id: 'a1_quantifiers',
+        title: 'Basic Quantifiers',
+        icon: <Hash size={20} />,
+        summary: 'Some / Any',
+        definition: 'Used to talk about indefinite quantities.',
+        deepDive: [
+          'SOME: Positive sentences (I have some money).',
+          'ANY: Negative and Questions (I don\'t have any money. Do you have any money?).',
+          'Exception: Use SOME in offers/requests (Would you like some water?).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Some + Noun', 
+            examples: [
+              'I need some water.',
+              'There are some apples.',
+              'I have some news.'
+            ] 
+          },
+          negative: { 
+            structure: 'Any + Noun', 
+            examples: [
+              'I don\'t have any brothers.',
+              'There isn\'t any sugar.',
+              'We don\'t need any help.'
+            ] 
+          },
+          question: { 
+            structure: 'Any + Noun?', 
+            examples: [
+              'Do you have any idea?',
+              'Are there any cookies?'
             ] 
           }
         }
@@ -297,102 +697,288 @@ const GRAMMAR_DATA: LevelData[] = [
     color: 'text-teal-600',
     bg: 'bg-teal-600',
     borderColor: 'border-teal-200',
-    description: 'Past events, Future plans, and Comparisons.',
+    description: 'Past events, Future plans, Modals, and Life Experiences.',
     topics: [
+      // 1. PAST SIMPLE
       {
         id: 'a2_past_simple',
         title: 'Past Simple',
         icon: <Clock size={20} />,
-        summary: 'Finished Past',
-        definition: 'Actions that started and finished at a specific time in the past.',
+        summary: 'Finished Actions',
+        definition: 'Used for actions that started and finished at a SPECIFIC time in the past.',
         deepDive: [
           'Regular Verbs: Add -ED (Work -> Worked, Play -> Played).',
           'Irregular Verbs: Change completely (Go -> Went, See -> Saw, Buy -> Bought).',
-          'Auxiliary DID: Use "Did" for Questions and Negatives. When you use "Did", the main verb goes back to base form.',
-          'Pronunciation of -ED: /t/ (Walked), /d/ (Played), /id/ (Started).'
+          'Auxiliary DID: Use "Did" for Questions and Negatives for ALL persons.',
+          'Important: When you use "Did/Didn\'t", the main verb returns to Base Form.'
         ],
         signalWords: ['Yesterday', 'Last night', 'Last week', 'Ago', 'In 2010', 'When I was young'],
         forms: {
           positive: { 
-            structure: 'S + V2 (Past)', 
+            structure: 'Subject + V2 (Past Form)', 
             examples: [
               'I worked late yesterday.', 
               'She went to Paris last summer.',
-              'We saw a movie last night.',
-              'He bought a new car.',
-              'They arrived 5 minutes ago.'
+              'We saw a good movie last night.',
+              'He bought a new car two days ago.',
+              'They arrived 5 minutes ago.',
+              'I studied English when I was at school.'
             ] 
           },
           negative: { 
-            structure: 'S + didn\'t + V1 (Base)', 
+            structure: 'Subject + didn\'t + V1 (Base)', 
             examples: [
-              'I didn\'t go to school.', 
+              'I didn\'t go to the party.', 
               'He didn\'t see the sign.',
               'We didn\'t eat pizza.',
               'She didn\'t like the movie.',
-              'It didn\'t rain.'
+              'It didn\'t rain yesterday.',
+              'You didn\'t call me.'
             ] 
           },
           question: { 
-            structure: 'Did + S + V1 (Base)?', 
+            structure: 'Did + Subject + V1 (Base)?', 
             examples: [
-              'Did you like it?', 
+              'Did you like the food?', 
               'Where did he go?',
               'Did they finish the work?',
               'What did you do yesterday?',
-              'Did she call you?'
+              'Did she call you?',
+              'When did it happen?'
             ] 
           }
         },
         commonMistakes: [
-          { wrong: 'I didn\'t went.', right: 'I didn\'t go.', explanation: 'Double past is incorrect. "Did" is already past, so the verb stays base.' },
-          { wrong: 'She goed.', right: 'She went.', explanation: 'Go is irregular.' }
+          { wrong: 'I didn\'t went.', right: 'I didn\'t go.', explanation: 'After DID/DIDN\'T, use the base verb.' },
+          { wrong: 'She goed to school.', right: 'She went to school.', explanation: 'GO is an irregular verb.' }
         ]
       },
+      // 2. PRESENT PERFECT (EXPERIENCE)
       {
-        id: 'a2_future',
-        title: 'Future (Will vs Going to)',
-        icon: <ArrowRight size={20} />,
-        summary: 'Plans vs Decisions',
-        definition: 'Different ways to talk about the future depending on context.',
+        id: 'a2_pres_perf_exp',
+        title: 'Present Perfect (Experience)',
+        icon: <Layers size={20} />,
+        summary: 'Have/Has + V3',
+        definition: 'Used to talk about life experiences when the exact time is NOT important or NOT mentioned.',
         deepDive: [
-          'GOING TO: Use for Plans made BEFORE speaking (I bought tickets, I am going to fly).',
-          'GOING TO: Use for Evidence (Look at those clouds, it is going to rain).',
-          'WILL: Use for Instant Decisions made NOW (I\'ll have a coffee).',
-          'WILL: Use for Promises, Predictions without evidence, and Offers.'
+          'Structure: Have/Has + Past Participle (V3).',
+          'Focus: "I have the memory of this event" (Result in present).',
+          'Comparison: "I went to Paris in 2010" (Past Simple - Specific Time) vs "I have been to Paris" (Present Perfect - Life Experience).',
+          'BEEN vs GONE: "He has been to London" (He went and came back). "He has gone to London" (He is there now).'
         ],
-        signalWords: ['Tomorrow', 'Next week', 'Soon', 'Later'],
+        signalWords: ['Ever', 'Never', 'Before', 'Once', 'Twice'],
         forms: {
           positive: { 
-            structure: 'Will / Be Going To', 
+            structure: 'S + Have/Has + V3', 
             examples: [
-              'I am going to visit my mom on Saturday. (Plan)', 
-              'Look out! You are going to fall! (Evidence)',
-              'I forgot my wallet. I will pay later. (Instant Decision)',
-              'I promise I will help you. (Promise)',
-              'I think cars will fly in 2050. (Prediction)'
+              'I have been to Japan twice.', 
+              'She has met a famous actor.', 
+              'We have eaten sushi before.',
+              'He has seen that movie.', 
+              'They have visited New York.'
             ] 
           },
           negative: { 
-            structure: 'Won\'t / Not going to', 
+            structure: 'S + Haven\'t/Hasn\'t + V3', 
             examples: [
-              'I won\'t do it again.', 
-              'She isn\'t going to come.',
-              'We won\'t tell anyone.',
-              'It isn\'t going to work.'
+              'I haven\'t finished the book.', 
+              'She hasn\'t travelled by plane.',
+              'We have never tried octopus.',
+              'He hasn\'t spoken to me.'
             ] 
           },
           question: { 
-            structure: 'Will...? / Are you going to...?', 
+            structure: 'Have/Has + S + V3?', 
+            examples: [
+              'Have you ever been to Brazil?', 
+              'Has she ever flown in a helicopter?',
+              'Have they seen this film?',
+              'Have you done this before?'
+            ] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'I have seen him yesterday.', right: 'I saw him yesterday.', explanation: 'If you say WHEN (yesterday), use Past Simple.' }
+        ]
+      },
+      // 3. FUTURE WITH WILL
+      {
+        id: 'a2_future_will',
+        title: 'Future (Will)',
+        icon: <ArrowRight size={20} />,
+        summary: 'Decisions & Promises',
+        definition: 'Used for decisions made at the moment of speaking, promises, offers, or predictions without evidence.',
+        deepDive: [
+          'Instant Decision: "The phone is ringing. I\'ll answer it." (Decided NOW).',
+          'Promise: "I will love you forever."',
+          'Prediction (Belief): "I think cars will fly in the future."',
+          'Structure: Will + Base Verb (No "to").'
+        ],
+        signalWords: ['Tomorrow', 'Soon', 'I think', 'Probably'],
+        forms: {
+          positive: { 
+            structure: 'S + Will + Verb', 
+            examples: [
+              'I\'ll help you with your bags.', 
+              'I will call you later.',
+              'It will be a great party.',
+              'I promise I will study more.',
+              'Maybe he will come.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Won\'t + Verb', 
+            examples: [
+              'I won\'t tell anyone your secret.', 
+              'She won\'t agree with this.',
+              'We won\'t be late.',
+              'It won\'t happen again.'
+            ] 
+          },
+          question: { 
+            structure: 'Will + S + Verb?', 
             examples: [
               'Will you marry me?', 
-              'Are you going to study tonight?',
-              'Where are we going to eat?',
-              'Will it rain?'
+              'Will it rain tomorrow?',
+              'Will you be home for dinner?',
+              'Where will you go?'
             ] 
           }
         }
       },
+      // 4. FUTURE WITH GOING TO
+      {
+        id: 'a2_future_goingto',
+        title: 'Future (Going To)',
+        icon: <ArrowRight size={20} />,
+        summary: 'Plans & Evidence',
+        definition: 'Used for plans decided BEFORE speaking or predictions based on visible evidence.',
+        deepDive: [
+          'Plan: "I bought tickets. I am going to fly to Rome." (Decided BEFORE).',
+          'Evidence: "Look at those clouds! It is going to rain." (I can see it coming).',
+          'Structure: Verb To Be (am/is/are) + Going to + Base Verb.'
+        ],
+        signalWords: ['Next week', 'Tomorrow', 'Tonight', 'Planning to'],
+        forms: {
+          positive: { 
+            structure: 'S + Be + Going to + Verb', 
+            examples: [
+              'I am going to buy a new car next week.', 
+              'She is going to have a baby.',
+              'Look! He is going to fall!',
+              'We are going to visit our grandparents.',
+              'They are going to play soccer on Saturday.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Be + Not + Going to', 
+            examples: [
+              'I am not going to do that.', 
+              'She isn\'t going to come.',
+              'We aren\'t going to buy the house.',
+              'It isn\'t going to work.'
+            ] 
+          },
+          question: { 
+            structure: 'Be + S + Going to?', 
+            examples: [
+              'Are you going to travel this year?', 
+              'Is he going to help us?',
+              'What are you going to do?',
+              'Are they going to stay?'
+            ] 
+          }
+        }
+      },
+      // 5. PRESENT CONTINUOUS (FUTURE)
+      {
+        id: 'a2_pres_cont_future',
+        title: 'Present Continuous (Future)',
+        icon: <Calendar size={20} />,
+        summary: 'Fixed Arrangements',
+        definition: 'Used for future events that are already organized, booked, or scheduled with a specific time and place.',
+        deepDive: [
+          'Focus: Use this when you have an appointment or a booking.',
+          'Example: "I am meeting my boss at 10 AM." (It is in my diary).',
+          'Difference from Going To: Very similar, but Continuous implies a fixed arrangement with other people.'
+        ],
+        signalWords: ['Tonight', 'Tomorrow morning', 'On Friday'],
+        forms: {
+          positive: { 
+            structure: 'S + Be + V-ing + Time', 
+            examples: [
+              'I am seeing the dentist tomorrow at 9.', 
+              'We are flying to London on Friday.',
+              'She is getting married next month.',
+              'They are having a party tonight.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Be + Not + V-ing', 
+            examples: [
+              'I am not working tomorrow.', 
+              'She isn\'t coming to the meeting.',
+              'We aren\'t doing anything this weekend.'
+            ] 
+          },
+          question: { 
+            structure: 'Be + S + V-ing?', 
+            examples: [
+              'Are you doing anything tonight?', 
+              'Is he playing football on Sunday?',
+              'When are you leaving?',
+              'Where are we meeting?'
+            ] 
+          }
+        }
+      },
+      // 6. MODALS OF OBLIGATION
+      {
+        id: 'a2_modals_obligation',
+        title: 'Modals: Must / Have to',
+        icon: <AlertTriangle size={20} />,
+        summary: 'Rules & Obligations',
+        definition: 'Used to express necessity, rules, laws, and personal obligations.',
+        deepDive: [
+          'MUST: Internal obligation (I feel it is necessary) or Written Rules.',
+          'HAVE TO: External obligation (The law/boss/school says so).',
+          'MUSTN\'T: PROHIBITION. You cannot do it. It is illegal/forbidden.',
+          'DON\'T HAVE TO: NO OBLIGATION. It is not necessary, but you can do it if you want (Optional).'
+        ],
+        signalWords: ['Rule', 'Law', 'Necessary', 'Optional'],
+        forms: {
+          positive: { 
+            structure: 'Must / Has to / Have to', 
+            examples: [
+              'You must wear a seatbelt. (Law)', 
+              'I must call my mom. (Internal feeling)',
+              'She has to work on Saturdays. (Job rule)',
+              'We have to study for the exam.'
+            ] 
+          },
+          negative: { 
+            structure: 'Mustn\'t / Don\'t have to', 
+            examples: [
+              'You MUSTN\'T smoke here. (It is forbidden!)', 
+              'You MUSTN\'T touch the art. (Prohibited)',
+              'You don\'t have to pay, it\'s free. (Optional)',
+              'She doesn\'t have to come if she is tired.'
+            ] 
+          },
+          question: { 
+            structure: 'Do/Does + S + Have to?', 
+            examples: [
+              'Do we have to wear a uniform?', 
+              'Does he have to work today?',
+              'When do I have to finish this?'
+            ] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'You mustn\'t pay, it is free.', right: 'You don\'t have to pay.', explanation: 'Mustn\'t means prohibited. Don\'t have to means optional.' }
+        ]
+      },
+      // 7. COMPARATIVES & SUPERLATIVES
       {
         id: 'a2_comparatives',
         title: 'Comparatives & Superlatives',
@@ -421,7 +1007,8 @@ const GRAMMAR_DATA: LevelData[] = [
             structure: 'Not as ... as', 
             examples: [
               'I am not as old as you.',
-              'This test wasn\'t as hard as I thought.'
+              'This test wasn\'t as hard as I thought.',
+              'She isn\'t as tall as her brother.'
             ] 
           },
           question: { 
@@ -432,14 +1019,395 @@ const GRAMMAR_DATA: LevelData[] = [
               'Is New York bigger than London?'
             ] 
           }
+        }
+      },
+      // 8. ADVERBS OF FREQUENCY
+      {
+        id: 'a2_adverbs_freq',
+        title: 'Adverbs of Frequency',
+        icon: <Clock size={20} />,
+        summary: 'Always, Usually, Never',
+        definition: 'Words that describe HOW OFTEN we do something.',
+        deepDive: [
+          'Scale: Always (100%) > Usually (80%) > Often (60%) > Sometimes (40%) > Rarely (10%) > Never (0%).',
+          'Position Rule 1: BEFORE the main verb (I ALWAYS eat breakfast).',
+          'Position Rule 2: AFTER the verb To Be (He IS always late).',
+          'Position Rule 3: "Sometimes" can go at the beginning or end of sentence.'
+        ],
+        signalWords: ['How often?'],
+        forms: {
+          positive: { 
+            structure: 'S + Adv + Verb / S + Be + Adv', 
+            examples: [
+              'I always brush my teeth.', 
+              'She usually takes the bus.',
+              'We often watch movies.',
+              'They rarely eat meat.',
+              'He is never late.',
+              'I am always happy.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Don\'t/Doesn\'t + Adv + Verb', 
+            examples: [
+              'I don\'t usually drink coffee.', 
+              'She doesn\'t often call me.',
+              'They are not always correct.'
+            ] 
+          },
+          question: { 
+            structure: 'Do you + Adv + Verb?', 
+            examples: [
+              'Do you always walk to work?', 
+              'Does he often get angry?',
+              'Is she usually this quiet?',
+              'How often do you go to the gym?'
+            ] 
+          }
         },
         commonMistakes: [
-          { wrong: 'He is more tall.', right: 'He is taller.', explanation: 'Tall is a short word, use -er.' },
-          { wrong: 'The most good.', right: 'The best.', explanation: 'Good is irregular.' }
+          { wrong: 'I go always to the park.', right: 'I always go to the park.', explanation: 'Adverb goes BEFORE the main verb.' }
         ]
+      },
+      // 9. BASIC CONNECTORS
+      {
+        id: 'a2_connectors',
+        title: 'Basic Connectors',
+        icon: <Link size={20} />,
+        summary: 'And, But, Because, So',
+        definition: 'Words used to join two sentences or ideas together.',
+        deepDive: [
+          'AND: Adds information (I like tea AND coffee).',
+          'BUT: Shows contrast (I like tea, BUT I don\'t like coffee).',
+          'BECAUSE: Gives a reason (I study BECAUSE I want to learn).',
+          'SO: Gives a result (I was tired, SO I went to bed).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Sentence + Connector + Sentence', 
+            examples: [
+              'I bought a shirt and a hat.', 
+              'He is rich, but he is unhappy.',
+              'I am eating because I am hungry.',
+              'It was raining, so we stayed home.',
+              'She studied hard, so she passed the exam.'
+            ] 
+          },
+          negative: { 
+            structure: '-', 
+            examples: [
+               'I wanted to go, but I couldn\'t.',
+               'He didn\'t eat because he wasn\'t hungry.'
+            ] 
+          },
+          question: { 
+            structure: 'Why...? Because...', 
+            examples: [
+              'Why are you crying? Because I am sad.',
+              'Did you go out or stay home?'
+            ] 
+          }
+        }
+      },
+      // 10. TOO / ENOUGH
+      {
+        id: 'a2_too_enough',
+        title: 'Too & Enough',
+        icon: <Split size={20} />,
+        summary: 'Excess vs Sufficient',
+        definition: 'Describing if we have the right amount of something.',
+        deepDive: [
+          'TOO: Means "More than necessary". Usually negative context. (The tea is TOO hot - I can\'t drink it).',
+          'ENOUGH: Means "Sufficient". (I have ENOUGH money - I can buy it).',
+          'Position: TOO + Adjective (Too big).',
+          'Position: Adjective + ENOUGH (Big enough).',
+          'Position: ENOUGH + Noun (Enough money).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Too + Adj / Adj + Enough', 
+            examples: [
+              'This box is too heavy.', 
+              'It is too expensive for me.',
+              'He is old enough to drive.',
+              'We have enough food.',
+              'This room is big enough.'
+            ] 
+          },
+          negative: { 
+            structure: 'Not ... enough', 
+            examples: [
+              'He isn\'t tall enough to play basketball.',
+              'I don\'t have enough time.',
+              'It isn\'t warm enough to swim.'
+            ] 
+          },
+          question: { 
+            structure: 'Is it ... enough?', 
+            examples: [
+              'Is the water warm enough?', 
+              'Do you have enough money?',
+              'Is this shirt too big?'
+            ] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'I have money enough.', right: 'I have enough money.', explanation: 'Enough goes BEFORE nouns.' },
+          { wrong: 'He is enough tall.', right: 'He is tall enough.', explanation: 'Enough goes AFTER adjectives.' }
+        ]
+      },
+      // 11. WOULD LIKE
+      {
+        id: 'a2_would_like',
+        title: 'Would Like',
+        icon: <MessageCircle size={20} />,
+        summary: 'Polite Requests',
+        definition: 'A polite way to say "I want". Essential for ordering food or making offers.',
+        deepDive: [
+          'Structure: Would like + Noun OR Would like + To + Verb.',
+          'Contraction: I\'d like, You\'d like, She\'d like.',
+          'Difference: "Do you like?" (General preference) vs "Would you like?" (Specific offer now).'
+        ],
+        signalWords: ['Please'],
+        forms: {
+          positive: { 
+            structure: 'S + \'d like + Noun/To Verb', 
+            examples: [
+              'I\'d like a coffee, please.', 
+              'She would like to speak with you.',
+              'We\'d like a table for two.',
+              'I would like to order now.',
+              'He\'d like to go home.'
+            ] 
+          },
+          negative: { 
+            structure: 'S + Wouldn\'t like', 
+            examples: [
+              'I wouldn\'t like to be famous.', 
+              'She wouldn\'t like that color.',
+              'We wouldn\'t like to disturb you.'
+            ] 
+          },
+          question: { 
+            structure: 'Would you like...?', 
+            examples: [
+              'Would you like some tea? (Offer)', 
+              'Would you like to come with us? (Invitation)',
+              'What would you like to eat?',
+              'Who would like to answer?'
+            ] 
+          }
+        }
+      },
+      // 12. COUNTABLE & UNCOUNTABLE
+      {
+        id: 'a2_countables',
+        title: 'Countable vs Uncountable',
+        icon: <Hash size={20} />,
+        summary: 'Apples vs Water',
+        definition: 'Understanding which nouns can be counted and which cannot.',
+        deepDive: [
+          'Countable: Things you can count (One car, two cars). Use A/AN or Numbers. Plural has -S.',
+          'Uncountable: Liquids, powders, abstract concepts (Water, Rice, Information, Money, Music). NO A/AN, NO Plural -S.',
+          'To count uncountables, use containers: A bottle of water, A piece of information.'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'There is (Uncountable) / There are (Countable)', 
+            examples: [
+              'I have an apple. (Countable)', 
+              'I have some money. (Uncountable)',
+              'There is water on the floor. (Uncountable - Singular)',
+              'There are three books. (Countable - Plural)',
+              'I like music. (Uncountable)'
+            ] 
+          },
+          negative: { 
+            structure: '-', 
+            examples: [
+               'There isn\'t any bread left.',
+               'There aren\'t any eggs.'
+            ] 
+          },
+          question: { 
+            structure: '-', 
+            examples: [
+               'Do you want some cheese?',
+               'Can I have a glass of milk?'
+            ] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'I have many informations.', right: 'I have a lot of information.', explanation: 'Information is always singular/uncountable.' }
+        ]
+      },
+      // 13. HOW MUCH / HOW MANY
+      {
+        id: 'a2_quantifiers_qs',
+        title: 'How Much vs How Many',
+        icon: <HelpCircle size={20} />,
+        summary: 'Quantity Questions',
+        definition: 'Asking about quantities based on countability.',
+        deepDive: [
+          'HOW MANY: Use with Countable Plural Nouns (Cars, People, Days).',
+          'HOW MUCH: Use with Uncountable Nouns (Water, Time, Money, Love).',
+          'Also use "How much" for PRICE.'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: '-', 
+            examples: [] 
+          },
+          negative: { 
+            structure: '-', 
+            examples: [] 
+          },
+          question: { 
+            structure: 'How Much/Many + Noun...?', 
+            examples: [
+              'How many brothers do you have?', 
+              'How many students are in the class?',
+              'How many days are in a week?',
+              'How much water do you drink?',
+              'How much money do you need?',
+              'How much time do we have?',
+              'How much is this shirt? (Price)'
+            ] 
+          }
+        }
+      },
+      // 14. PREPOSITIONS EXTENDED
+      {
+        id: 'a2_prepositions_adv',
+        title: 'Prepositions (Extended)',
+        icon: <MapPin size={20} />,
+        summary: 'Behind, Between, Above...',
+        definition: 'More precise words to describe location.',
+        deepDive: [
+          'BEHIND: At the back of.',
+          'IN FRONT OF: The opposite of behind.',
+          'OPPOSITE: Face to face.',
+          'BETWEEN: In the middle of two things.',
+          'ABOVE: Higher than (not touching).',
+          'BELOW: Lower than (not touching).'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Be + Prep + Place', 
+            examples: [
+              'The garden is behind the house.', 
+              'The car is in front of the garage.',
+              'The bank is opposite the park.',
+              'I am sitting between Tom and Jerry.',
+              'The clock is above the door.',
+              'The temperature is below zero.'
+            ] 
+          },
+          negative: { 
+            structure: '-', 
+            examples: [] 
+          },
+          question: { 
+            structure: 'Where is...?', 
+            examples: [
+              'Is the parking lot behind the building?',
+              'What is under the table?'
+            ] 
+          }
+        }
+      },
+      // 15. QUESTION TAGS
+      {
+        id: 'a2_question_tags',
+        title: 'Question Tags',
+        icon: <HelpCircle size={20} />,
+        summary: '...isn\'t it?',
+        definition: 'Mini-questions added to the end of a sentence to confirm information or ask for agreement.',
+        deepDive: [
+          'Rule 1: Positive Sentence -> Negative Tag (You are happy, aren\'t you?).',
+          'Rule 2: Negative Sentence -> Positive Tag (You aren\'t happy, are you?).',
+          'Rule 3: Use the SAME auxiliary verb (Is, Do, Did, Have, Will, Can).',
+          'Special Exception: "I am" -> "Aren\'t I?".'
+        ],
+        signalWords: ['Right?'],
+        forms: {
+          positive: { 
+            structure: 'Positive, Negative?', 
+            examples: [
+              'She is beautiful, isn\'t she?', 
+              'You live here, don\'t you?',
+              'He can swim, can\'t he?',
+              'They will come, won\'t they?',
+              'You bought bread, didn\'t you?'
+            ] 
+          },
+          negative: { 
+            structure: 'Negative, Positive?', 
+            examples: [
+              'You don\'t eat meat, do you?', 
+              'She isn\'t ready, is she?',
+              'He didn\'t call, did he?',
+              'We can\'t go, can we?'
+            ] 
+          },
+          question: { 
+            structure: '-', 
+            examples: [] 
+          }
+        },
+        commonMistakes: [
+          { wrong: 'I am late, am not I?', right: 'I am late, aren\'t I?', explanation: 'The tag for "I am" is always "aren\'t I".' }
+        ]
+      },
+      // 16. SUGGESTIONS
+      {
+        id: 'a2_suggestions',
+        title: 'Suggestions & Requests',
+        icon: <MessageCircle size={20} />,
+        summary: 'Let\'s / Shall we?',
+        definition: 'Common ways to suggest ideas or activities to others.',
+        deepDive: [
+          'LET\'S (Let us): Used to suggest doing something together (Let\'s go).',
+          'SHALL WE...?: A polite question form of Let\'s (Shall we go?).',
+          'WHY DON\'T WE...?: Another polite suggestion.'
+        ],
+        signalWords: [],
+        forms: {
+          positive: { 
+            structure: 'Let\'s + Verb', 
+            examples: [
+              'Let\'s go to the cinema.', 
+              'Let\'s have dinner.',
+              'Let\'s study English.',
+              'Let\'s take a break.'
+            ] 
+          },
+          negative: { 
+            structure: 'Let\'s not + Verb', 
+            examples: [
+              'Let\'s not talk about this.',
+              'Let\'s not go out today.'
+            ] 
+          },
+          question: { 
+            structure: 'Shall we...? / Why don\'t we...?', 
+            examples: [
+              'Shall we dance?', 
+              'Shall we start?',
+              'Why don\'t we go to the beach?',
+              'Why don\'t you call him?'
+            ] 
+          }
+        }
       }
     ]
   },
+  // B1, B2, C1, C2 can be expanded later if needed or kept simple for now
   {
     id: 'B1',
     label: 'Intermediate',
@@ -447,521 +1415,34 @@ const GRAMMAR_DATA: LevelData[] = [
     bg: 'bg-blue-600',
     borderColor: 'border-blue-200',
     description: 'Complex Tenses, Passive Voice, Conditionals.',
-    topics: [
-      {
-        id: 'b1_pres_perf_full',
-        title: 'Present Perfect',
-        icon: <Layers size={20} />,
-        summary: 'Have/Has + Past Participle',
-        definition: 'Connects the past to the present. Used for experiences, changes, and continuing situations.',
-        deepDive: [
-          'Unfinished Time: "I have lived here for 10 years" (I still live here).',
-          'Experience: "I have seen that movie" (In my life, time doesn\'t matter).',
-          'Recent Action with Result: "I have lost my keys" (So I can\'t enter the house now).',
-          'Contrast with Past Simple: If you say WHEN it happened (Yesterday), you MUST use Past Simple.'
-        ],
-        signalWords: ['For', 'Since', 'Just', 'Already', 'Yet', 'Ever', 'Never', 'Lately'],
-        forms: {
-          positive: { 
-            structure: 'Subject + Have/Has + V3', 
-            examples: [
-              'I have lived here for 10 years.', 
-              'She has already finished her homework.',
-              'We have been to the USA twice.',
-              'I have lost my phone.',
-              'He has just arrived.'
-            ] 
-          },
-          negative: { 
-            structure: 'Haven\'t / Hasn\'t + V3', 
-            examples: [
-              'I haven\'t finished yet.',
-              'She hasn\'t called me.',
-              'We haven\'t seen that movie.',
-              'It hasn\'t stopped raining.'
-            ] 
-          },
-          question: { 
-            structure: 'Have/Has + Subject + V3?', 
-            examples: [
-              'Have you seen my keys?', 
-              'How long have you been here?',
-              'Has she ever eaten sushi?',
-              'Have you done your job?'
-            ] 
-          }
-        },
-        commonMistakes: [
-          { wrong: 'I have seen him yesterday.', right: 'I saw him yesterday.', explanation: 'Specific past time (Yesterday) requires Past Simple.' }
-        ]
-      },
-      {
-        id: 'b1_passive',
-        title: 'Passive Voice (Intro)',
-        icon: <ToggleLeft size={20} />,
-        summary: 'Be + Past Participle',
-        definition: 'Focuses on the ACTION or the OBJECT, rather than who did it.',
-        deepDive: [
-          'Structure: Object + Verb To Be (in correct tense) + Past Participle (V3).',
-          'Use it when: We don\'t know who did it, it\'s obvious who did it, or the object is more important.',
-          'To mention the doer, use "BY".'
-        ],
-        signalWords: ['By'],
-        forms: {
-          positive: { 
-            structure: 'Object + Be + V3', 
-            examples: [
-              'The book was written by JK Rowling.', 
-              'English is spoken in many countries.',
-              'The house was built in 1990.',
-              'The emails are sent automatically.',
-              'My car has been stolen!'
-            ] 
-          },
-          negative: { 
-            structure: 'Be + Not + V3', 
-            examples: [
-              'The room wasn\'t cleaned yesterday.',
-              'Service is not included in the bill.',
-              'The letter hasn\'t been sent yet.'
-            ] 
-          },
-          question: { 
-            structure: 'Be + Obj + V3?', 
-            examples: [
-              'When was the Taj Mahal built?',
-              'Is credit card accepted here?',
-              'Has the work been finished?',
-              'Where are these cars made?'
-            ] 
-          }
-        }
-      },
-      {
-        id: 'b1_conditionals_01',
-        title: 'Conditionals 0 & 1',
-        icon: <Link size={20} />,
-        summary: 'Facts & Real Future',
-        definition: 'Describing cause and effect relationships.',
-        deepDive: [
-          'Zero Conditional (Facts): If + Present, ... Present. (If you heat ice, it melts). Always true.',
-          'First Conditional (Real Possibility): If + Present, ... Will. (If it rains, I will stay home). Specific future situation.',
-          'You can swap the order: "I will stay home if it rains" (No comma).'
-        ],
-        signalWords: ['If', 'Unless', 'When', 'As soon as'],
-        forms: {
-          positive: { 
-            structure: 'If + Pres, ... Pres / Will', 
-            examples: [
-              'If you mix red and blue, you get purple. (Zero)', 
-              'If I see him, I will tell him the news. (First)',
-              'If we hurry, we will catch the bus.',
-              'Unless you study, you will fail.'
-            ] 
-          },
-          negative: { 
-            structure: 'Unless / If ... not', 
-            examples: [
-              'If you don\'t water plants, they die.',
-              'I won\'t go if you don\'t go.',
-              'Unless the weather improves, we will cancel the picnic.'
-            ] 
-          },
-          question: { 
-            structure: 'What will you do if...?', 
-            examples: [
-              'What happens if you press this button?',
-              'What will you do if you miss the train?',
-              'Where will you go if the hotel is full?'
-            ] 
-          }
-        }
-      }
-    ]
+    topics: []
   },
   {
-    id: 'B2',
-    label: 'Upper Int.',
-    color: 'text-indigo-600',
-    bg: 'bg-indigo-600',
-    borderColor: 'border-indigo-200',
-    description: 'Hypothetical situations, Deduction, Advanced Passive.',
-    topics: [
-      {
-        id: 'b2_cond_2',
-        title: 'Second Conditional',
-        icon: <Link size={20} />,
-        summary: 'Unreal Present',
-        definition: 'Used for imaginary, impossible, or unlikely situations in the PRESENT or FUTURE.',
-        deepDive: [
-          'Formula: If + Past Simple, ... WOULD + Verb.',
-          'Important: It uses Past Simple, but it talks about NOW.',
-          'Subjunctive: With verb To Be, use "WERE" for all persons (If I were you, If she were here).',
-          'Use it for advice: "If I were you, I would..."'
-        ],
-        signalWords: ['If', 'Would', 'Were'],
-        forms: {
-          positive: { 
-            structure: 'If + Past, ... Would', 
-            examples: [
-              'If I won the lottery, I would buy a boat. (I probably won\'t win)', 
-              'If I were you, I would accept the job.',
-              'If he studied more, he would pass. (But he doesn\'t study)',
-              'I would travel the world if I had more money.'
-            ] 
-          },
-          negative: { 
-            structure: 'If ... didn\'t ..., wouldn\'t', 
-            examples: [
-              'If I didn\'t have to work, I wouldn\'t go.',
-              'I wouldn\'t do that if I were you.',
-              'If she didn\'t like him, she wouldn\'t call him.'
-            ] 
-          },
-          question: { 
-            structure: 'What would you do if...?', 
-            examples: [
-              'What would you do if you saw a ghost?',
-              'Where would you live if you could live anywhere?',
-              'Would you help me if I asked you?'
-            ] 
-          }
-        }
-      },
-      {
-        id: 'b2_cond_3',
-        title: 'Third Conditional',
-        icon: <Link size={20} />,
-        summary: 'Unreal Past / Regrets',
-        definition: 'Used for imaginary situations in the PAST. It describes something that did NOT happen.',
-        deepDive: [
-          'Formula: If + Past Perfect (had done), ... WOULD HAVE + Past Participle (done).',
-          'Use this for regrets or criticizing past actions.',
-          '"If I had studied" means I DID NOT study.'
-        ],
-        signalWords: ['If only', 'Would have', 'Had'],
-        forms: {
-          positive: { 
-            structure: 'If + Past Perf, ... Would Have', 
-            examples: [
-              'If I had known, I would have come earlier.', 
-              'If it hadn\'t rained, we would have gone to the beach.',
-              'If she had seen the sign, she would have stopped.',
-              'I would have passed if I had studied.'
-            ] 
-          },
-          negative: { 
-            structure: 'Wouldn\'t have...', 
-            examples: [
-              'I wouldn\'t have been late if the bus had arrived on time.',
-              'If you hadn\'t lied, I wouldn\'t have been angry.'
-            ] 
-          },
-          question: { 
-            structure: 'Would you have...?', 
-            examples: [
-              'What would you have done if you had lost your passport?',
-              'Would you have helped me if I had asked?',
-              'Where would you have gone?'
-            ] 
-          }
-        }
-      },
-      {
-        id: 'b2_modals_deduction',
-        title: 'Modals of Deduction',
-        icon: <Lightbulb size={20} />,
-        summary: 'Must / Can\'t / Might',
-        definition: 'Using modals to guess how true something is based on evidence.',
-        deepDive: [
-          'MUST: 90-100% Sure it\'s TRUE. (He has a Ferrari -> He must be rich).',
-          'CAN\'T: 90-100% Sure it\'s FALSE. (He just ate lunch -> He can\'t be hungry).',
-          'MIGHT / COULD / MAY: 50% Possibility. (He isn\'t answering -> He might be sleeping).',
-          'Note: The opposite of "Must be" is "Can\'t be", not "Mustn\'t be".'
-        ],
-        signalWords: ['Surely', 'Definitely', 'Maybe', 'Perhaps'],
-        forms: {
-          positive: { 
-            structure: 'Must be / Might be', 
-            examples: [
-              'You\'ve been working all day, you must be tired.', 
-              'She might be at home, the lights are on.',
-              'It could be true.',
-              'Look at the snow! It must be freezing outside.'
-            ] 
-          },
-          negative: { 
-            structure: 'Can\'t be', 
-            examples: [
-              'It can\'t be true! I don\'t believe it.', 
-              'He can\'t be the winner, he wasn\'t even playing.',
-              'She might not come today.'
-            ] 
-          },
-          question: { 
-            structure: '-', 
-            examples: [
-              'Could it be true?',
-              'Do you think he might be lost?'
-            ] 
-          }
-        }
-      },
-      {
-        id: 'b2_gerunds',
-        title: 'Gerunds (-ing)',
-        icon: <Type size={20} />,
-        summary: 'Verbs as Nouns',
-        definition: 'When a verb ends in -ING and functions as a noun.',
-        deepDive: [
-          'As the SUBJECT of a sentence: "Smoking is bad for you."',
-          'After PREPOSITIONS: "I am interested IN learning."',
-          'After CERTAIN VERBS: Enjoy, Mind, Suggest, Avoid, Finish, Miss.',
-          'Example: "I enjoy playing" (Not I enjoy to play).'
-        ],
-        signalWords: ['Enjoy', 'Mind', 'Stop', 'Suggest', 'Avoid'],
-        forms: {
-          positive: { 
-            structure: 'V-ing', 
-            examples: [
-              'Swimming is good exercise.', 
-              'I enjoy reading books.', 
-              'Thanks for helping me.',
-              'She suggested going to the cinema.',
-              'He avoided answering the question.'
-            ] 
-          },
-          negative: { 
-            structure: 'Not -ing', 
-            examples: [
-              'I suggest not going there at night.',
-              'He admitted not doing the homework.'
-            ] 
-          },
-          question: { 
-            structure: 'Do you mind -ing?', 
-            examples: [
-              'Do you mind opening the window?',
-              'Do you like cooking?',
-              'Have you finished eating?'
-            ] 
-          }
-        }
-      },
-      {
-        id: 'b2_infinitives',
-        title: 'Infinitives (To)',
-        icon: <Type size={20} />,
-        summary: 'To + Verb',
-        definition: 'The base form of the verb with TO.',
-        deepDive: [
-          'To show PURPOSE: "I went to the shop TO buy milk."',
-          'After ADJECTIVES: "It is easy TO learn."',
-          'After CERTAIN VERBS: Want, Decide, Promise, Plan, Hope, Offer, Refuse.',
-          'Example: "I decided to go" (Not I decided going).'
-        ],
-        signalWords: ['Want', 'Hope', 'Decide', 'Plan', 'Promise'],
-        forms: {
-          positive: { 
-            structure: 'To + V', 
-            examples: [
-              'I want to go home.', 
-              'It is dangerous to swim here.', 
-              'I called him to apologize.',
-              'She promised to help me.',
-              'We decided to sell the house.'
-            ] 
-          },
-          negative: { 
-            structure: 'Not to + V', 
-            examples: [
-              'I decided not to go.',
-              'She promised not to tell anyone.',
-              'Try not to be late.'
-            ] 
-          },
-          question: { 
-            structure: 'Want to...?', 
-            examples: [
-              'Do you want to come?',
-              'Where do you hope to work?',
-              'Did he offer to pay?'
-            ] 
-          }
-        }
-      }
-    ]
+      id: 'B2',
+      label: 'Upper-Int',
+      color: 'text-indigo-600',
+      bg: 'bg-indigo-600',
+      borderColor: 'border-indigo-200',
+      description: 'Advanced structures for fluent communication.',
+      topics: []
   },
   {
-    id: 'C1',
-    label: 'Advanced',
-    color: 'text-purple-600',
-    bg: 'bg-purple-600',
-    borderColor: 'border-purple-200',
-    description: 'Precision, Nuance, and Style.',
-    topics: [
-      {
-        id: 'c1_inversion',
-        title: 'Inversion',
-        icon: <ArrowUpLeft size={20} />,
-        summary: 'Never have I...',
-        definition: 'Changing the normal word order (Subject + Verb -> Verb + Subject) for dramatic emphasis or formality.',
-        deepDive: [
-          'Triggered by Negative Adverbials at the start: Never, Seldom, Rarely, Hardly, Under no circumstances.',
-          'Structure looks like a question, but it is a statement.',
-          '"Never have I seen" instead of "I have never seen".',
-          'Only after...', 'Not only... but also...', 'Little did he know...'
-        ],
-        signalWords: ['Never', 'Seldom', 'Rarely', 'No sooner', 'Little', 'Not only'],
-        forms: {
-          positive: { 
-            structure: 'Adv + Aux + S + V', 
-            examples: [
-              'Never have I seen such a beautiful view.', 
-              'Rarely do we go out these days.', 
-              'Under no circumstances should you open this door.',
-              'Little did he know that she was lying.',
-              'Not only is he rich, but he is also generous.'
-            ] 
-          },
-          negative: { 
-            structure: '-', 
-            examples: [] 
-          },
-          question: { 
-            structure: '-', 
-            examples: [] 
-          }
-        },
-        proTip: 'Use this in essays or formal speeches to sound sophisticated. Don\'t overuse it in casual chat.'
-      },
-      {
-        id: 'c1_past_modals',
-        title: 'Past Modals',
-        icon: <Clock size={20} />,
-        summary: 'Should have done',
-        definition: 'Talking about past possibilities, deductions, and regrets.',
-        deepDive: [
-          'SHOULD HAVE + V3: Regret or Criticism (You didn\'t do it, but it was a good idea).',
-          'MUST HAVE + V3: Logical Deduction - Certainty (It happened).',
-          'CAN\'T HAVE + V3: Logical Deduction - Impossibility (It didn\'t happen).',
-          'COULD HAVE + V3: Possibility that didn\'t happen.'
-        ],
-        signalWords: [],
-        forms: {
-          positive: { 
-            structure: 'Modal + Have + V3', 
-            examples: [
-              'You should have called me. (You didn\'t call)', 
-              'He must have left already. (His car is gone)',
-              'I could have won, but I fell.',
-              'They might have missed the bus.'
-            ] 
-          },
-          negative: { 
-            structure: 'Needn\'t have / Can\'t have', 
-            examples: [
-              'You needn\'t have brought gifts (it wasn\'t necessary, but you did).', 
-              'He can\'t have stolen it (he was with me).',
-              'I shouldn\'t have eaten so much.'
-            ] 
-          },
-          question: { 
-            structure: 'Should I have...?', 
-            examples: [
-              'Should I have told him?',
-              'Where could he have gone?'
-            ] 
-          }
-        }
-      }
-    ]
+      id: 'C1',
+      label: 'Advanced',
+      color: 'text-purple-600',
+      bg: 'bg-purple-600',
+      borderColor: 'border-purple-200',
+      description: 'Refined grammar for professional and academic use.',
+      topics: []
   },
   {
-    id: 'C2',
-    label: 'Proficiency',
-    color: 'text-rose-600',
-    bg: 'bg-rose-600',
-    borderColor: 'border-rose-200',
-    description: 'Native-level command and literary structures.',
-    topics: [
-      {
-        id: 'c2_subjunctive',
-        title: 'The Subjunctive',
-        icon: <AlertTriangle size={20} />,
-        summary: 'I insist that he be...',
-        definition: 'A formal mood used to explore conditional or imaginary situations, or to express wishes, commands, and demands.',
-        deepDive: [
-          'Often follows verbs like: Suggest, Recommend, Insist, Demand, Request.',
-          'Also follows adjectives: Essential, Vital, Important, Necessary.',
-          'RULE: Use the BASE form of the verb for ALL persons (He go, She be, It have). No -s, no -ed, no -ing.',
-          'Example: "I suggest that he study" (Not studies).'
-        ],
-        signalWords: ['Insist', 'Recommend', 'Vital', 'Essential', 'Crucial'],
-        forms: {
-          positive: { 
-            structure: 'S + V + that + S + Base Verb', 
-            examples: [
-              'I suggest that he study more.', 
-              'It is essential that she be here on time.',
-              'The doctor recommended that he stop smoking.',
-              'I demand that I be allowed to speak.',
-              'It is vital that the machine remain on.'
-            ] 
-          },
-          negative: { 
-            structure: '...that + S + not + Base', 
-            examples: [
-              'I recommend that you not go there.',
-              'It is important that she not know the truth yet.'
-            ] 
-          },
-          question: { 
-            structure: '-', 
-            examples: [] 
-          }
-        },
-        commonMistakes: [
-          { wrong: 'I suggest that he goes.', right: 'I suggest that he GO.', explanation: 'Subjunctive uses base form (no -s).' }
-        ]
-      },
-      {
-        id: 'c2_complex_inversion',
-        title: 'Complex Inversion',
-        icon: <ArrowUpLeft size={20} />,
-        summary: 'Had I known...',
-        definition: 'Inverting conditional sentences by removing "IF". This is extremely formal and literary.',
-        deepDive: [
-          'Type 2 Conditional: "If I were..." -> "Were I..."',
-          'Type 3 Conditional: "If I had known..." -> "Had I known..."',
-          'First Conditional (Formal): "If you should see..." -> "Should you see..."',
-          'Negative: Keep "Not" after the subject. "Had I not..."'
-        ],
-        signalWords: ['Had', 'Were', 'Should'],
-        forms: {
-          positive: { 
-            structure: 'Aux + S + ...', 
-            examples: [
-              'Had I known you were coming, I would have baked a cake.', 
-              'Were it not for your help, I would have failed.', 
-              'Should you need assistance, please call me.',
-              'Were he richer, he would buy an island.'
-            ] 
-          },
-          negative: { 
-            structure: 'Had I not...', 
-            examples: [
-              'Had I not seen it with my own eyes, I wouldn\'t believe it.',
-              'Were we not so tired, we would join you.'
-            ] 
-          },
-          question: { 
-            structure: '-', 
-            examples: [] 
-          }
-        }
-      }
-    ]
+      id: 'C2',
+      label: 'Proficiency',
+      color: 'text-pink-600',
+      bg: 'bg-pink-600',
+      borderColor: 'border-pink-200',
+      description: 'Near-native command of nuance and style.',
+      topics: []
   }
 ];
 
@@ -1072,6 +1553,11 @@ const GrammarBook: React.FC = () => {
                   </div>
                 </button>
               ))}
+              {currentLevel.topics.length === 0 && (
+                  <div className="col-span-full py-10 text-center text-gray-400 italic">
+                      More topics coming soon for this level.
+                  </div>
+              )}
             </div>
           </div>
         ) : (

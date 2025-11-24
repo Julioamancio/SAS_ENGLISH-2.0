@@ -22,102 +22,110 @@ export const DEFAULT_STAGES = [
   { id: 'st_3', name: '3ª Etapa', maxPoints: 35 },
 ];
 
-// Initial Seed Data
-const seedData = () => {
-  // Always ensure Admin exists
-  const existingUsers = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
-  if (!existingUsers.find((u: User) => u.email === 'admin@sas.com')) {
-      const adminUser: User = { 
-          id: 'admin', 
-          name: 'Administrador', 
-          email: 'admin@sas.com', 
-          role: 'admin',
-          password: 'admin123'
-      };
-      localStorage.setItem(KEYS.USERS, JSON.stringify([...existingUsers, adminUser]));
-  }
-  
-  // Sync students without login
-  const students = JSON.parse(localStorage.getItem(KEYS.STUDENTS) || '[]');
-  const users = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
-  let usersChanged = false;
-
-  students.forEach((s: Student) => {
-      // Check if user exists (case insensitive email check)
-      const exists = users.find((u: User) => u.email.toLowerCase() === s.email.toLowerCase());
-      if (!exists) {
-          const newUser: User = {
-              id: s.id,
-              name: s.name,
-              email: s.email,
-              role: 'student',
-              password: '123'
-          };
-          users.push(newUser);
-          usersChanged = true;
-      }
-  });
-
-  if (usersChanged) {
-      localStorage.setItem(KEYS.USERS, JSON.stringify(users));
-      console.log('Synchronized student logins.');
-  }
-
-  if (localStorage.getItem(KEYS.CLASSES)) return;
-
-  const classes: ClassGroup[] = [
-    { 
-      id: 'c1', 
-      name: 'Inglês 101 - A1', 
-      level: 'A1', 
-      schedule: 'Seg/Qua 08:00', 
-      teacherId: 'admin',
-      stages: DEFAULT_STAGES
-    },
-    { 
-      id: 'c2', 
-      name: 'Inglês Negócios - B2', 
-      level: 'B2', 
-      schedule: 'Ter/Qui 19:00', 
-      teacherId: 'admin',
-      stages: DEFAULT_STAGES
+// Helper to safely get data
+const get = <T>(key: string): T[] => {
+    try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : [];
+    } catch (e) {
+        console.error(`Error reading ${key}`, e);
+        return [];
     }
-  ];
-
-  const seedStudents: Student[] = [
-    { id: 's1', name: 'Alice Silva', email: 'alice@exemplo.com', enrollmentDate: '2024-01-15' },
-    { id: 's2', name: 'Bruno Souza', email: 'bruno@exemplo.com', enrollmentDate: '2024-01-16' },
-    { id: 's3', name: 'Carlos Lima', email: 'carlos@exemplo.com', enrollmentDate: '2024-01-20' },
-  ];
-
-  const enrollments: Enrollment[] = [
-    { classId: 'c1', studentId: 's1', active: true },
-    { classId: 'c1', studentId: 's2', active: true },
-    { classId: 'c2', studentId: 's3', active: true },
-  ];
-
-  const activities: Activity[] = [
-    { id: 'a1', classId: 'c1', title: 'Quiz Introdutório', stageId: 'st_1', maxPoints: 10, date: '2024-02-01' },
-    { id: 'a2', classId: 'c1', title: 'Prova Parcial', stageId: 'st_1', maxPoints: 20, date: '2024-03-01' },
-  ];
-
-  const grades: Grade[] = [
-    { activityId: 'a1', studentId: 's1', value: 9 },
-    { activityId: 'a1', studentId: 's2', value: 8 },
-  ];
-
-  localStorage.setItem(KEYS.CLASSES, JSON.stringify(classes));
-  localStorage.setItem(KEYS.STUDENTS, JSON.stringify(seedStudents));
-  localStorage.setItem(KEYS.ENROLLMENTS, JSON.stringify(enrollments));
-  localStorage.setItem(KEYS.ACTIVITIES, JSON.stringify(activities));
-  localStorage.setItem(KEYS.GRADES, JSON.stringify(grades));
-  localStorage.setItem(KEYS.FEEDBACKS, JSON.stringify([]));
-  localStorage.setItem(KEYS.QUIZ_ATTEMPTS, JSON.stringify([]));
 };
 
-// Helper to get/set
-const get = <T>(key: string): T[] => JSON.parse(localStorage.getItem(key) || '[]');
-const set = (key: string, data: any[]) => localStorage.setItem(key, JSON.stringify(data));
+// Helper to safely set data
+const set = (key: string, data: any[]): boolean => {
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        return true;
+    } catch (e) {
+        console.error(`Error saving ${key}. Storage might be full.`, e);
+        return false;
+    }
+};
+
+// Initial Seed Data
+const seedData = () => {
+  try {
+      // 1. Emergency Cleanup: If Logo is corrupt or too big causing crash, remove it
+      try {
+          const logo = localStorage.getItem(KEYS.SYSTEM_LOGO);
+          if (logo && logo.length > 500000) { // Safety limit check
+             console.warn("Logo too large, removing to prevent crash");
+             localStorage.removeItem(KEYS.SYSTEM_LOGO);
+          }
+      } catch (e) { /* ignore */ }
+
+      // 2. Ensure Admin Exists
+      const existingUsers = get<User>(KEYS.USERS);
+      if (!existingUsers.find((u: User) => u.email === 'admin@sas.com')) {
+          const adminUser: User = { 
+              id: 'admin', 
+              name: 'Administrador', 
+              email: 'admin@sas.com', 
+              role: 'admin',
+              password: 'admin123'
+          };
+          set(KEYS.USERS, [...existingUsers, adminUser]);
+      }
+      
+      // 3. Sync students without login
+      const students = get<Student>(KEYS.STUDENTS);
+      const users = get<User>(KEYS.USERS);
+      let usersChanged = false;
+
+      students.forEach((s: Student) => {
+          const exists = users.find((u: User) => u.email.toLowerCase() === s.email.toLowerCase());
+          if (!exists) {
+              const newUser: User = {
+                  id: s.id,
+                  name: s.name,
+                  email: s.email,
+                  role: 'student',
+                  password: '123'
+              };
+              users.push(newUser);
+              usersChanged = true;
+          }
+      });
+
+      if (usersChanged) {
+          set(KEYS.USERS, users);
+      }
+
+      if (localStorage.getItem(KEYS.CLASSES)) return;
+
+      // 4. Initial Seed if empty
+      const classes: ClassGroup[] = [
+        { 
+          id: 'c1', 
+          name: 'Inglês 101 - A1', 
+          level: 'A1', 
+          schedule: 'Seg/Qua 08:00', 
+          teacherId: 'admin',
+          stages: DEFAULT_STAGES
+        },
+        { 
+          id: 'c2', 
+          name: 'Inglês Negócios - B2', 
+          level: 'B2', 
+          schedule: 'Ter/Qui 19:00', 
+          teacherId: 'admin',
+          stages: DEFAULT_STAGES
+        }
+      ];
+
+      set(KEYS.CLASSES, classes);
+      set(KEYS.STUDENTS, []);
+      set(KEYS.ENROLLMENTS, []);
+      set(KEYS.ACTIVITIES, []);
+      set(KEYS.GRADES, []);
+      set(KEYS.FEEDBACKS, []);
+      set(KEYS.QUIZ_ATTEMPTS, []);
+  } catch (e) {
+      console.error("Critical Error during DB Init", e);
+  }
+};
 
 export const db = {
   init: seedData,
@@ -126,7 +134,6 @@ export const db = {
     getAll: () => get<User>(KEYS.USERS),
     add: (user: User) => {
         const users = get<User>(KEYS.USERS);
-        // Prevent duplicates
         if(!users.find(u => u.email === user.email)) {
             set(KEYS.USERS, [...users, user]);
         }
@@ -146,35 +153,28 @@ export const db = {
     },
     getById: (id: string) => get<ClassGroup>(KEYS.CLASSES).find(c => c.id === id),
     delete: (classId: string) => {
-        // 1. Delete Class
         const remainingClasses = get<ClassGroup>(KEYS.CLASSES).filter(c => c.id !== classId);
         set(KEYS.CLASSES, remainingClasses);
 
-        // 2. Identify Enrollments to delete
         const allEnrollments = get<Enrollment>(KEYS.ENROLLMENTS);
         const classEnrollments = allEnrollments.filter(e => e.classId === classId);
         const studentIdsToDelete = classEnrollments.map(e => e.studentId);
         
-        // Remove enrollments for this class
         set(KEYS.ENROLLMENTS, allEnrollments.filter(e => e.classId !== classId));
 
-        // 3. Delete Students (and their Users)
         const remainingStudents = get<Student>(KEYS.STUDENTS).filter(s => !studentIdsToDelete.includes(s.id));
         set(KEYS.STUDENTS, remainingStudents);
 
         const remainingUsers = get<User>(KEYS.USERS).filter(u => !studentIdsToDelete.includes(u.id));
         set(KEYS.USERS, remainingUsers);
 
-        // 4. Delete Activities
         const remainingActivities = get<Activity>(KEYS.ACTIVITIES).filter(a => a.classId !== classId);
         set(KEYS.ACTIVITIES, remainingActivities);
 
-        // 5. Delete Grades
         const remainingActivityIds = remainingActivities.map(a => a.id);
         const remainingGrades = get<Grade>(KEYS.GRADES).filter(g => remainingActivityIds.includes(g.activityId));
         set(KEYS.GRADES, remainingGrades);
 
-        // 6. Delete Feedbacks
         const remainingFeedbacks = get<Feedback>(KEYS.FEEDBACKS).filter(f => f.classId !== classId);
         set(KEYS.FEEDBACKS, remainingFeedbacks);
     }
@@ -196,7 +196,6 @@ export const db = {
             }
             return e;
         });
-        // Add new enrollment
         updated.push({ classId: toClassId, studentId, active: true });
         set(KEYS.ENROLLMENTS, updated);
     }
@@ -268,24 +267,28 @@ export const db = {
 
   system: {
       backup: () => {
-          const data = {
-              users: get(KEYS.USERS),
-              classes: get(KEYS.CLASSES),
-              students: get(KEYS.STUDENTS),
-              activities: get(KEYS.ACTIVITIES),
-              grades: get(KEYS.GRADES),
-              enrollments: get(KEYS.ENROLLMENTS),
-              feedbacks: get(KEYS.FEEDBACKS),
-              quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
-              timestamp: new Date().toISOString(),
-              logo: localStorage.getItem(KEYS.SYSTEM_LOGO)
-          };
-          return JSON.stringify(data);
+          try {
+              const data = {
+                  users: get(KEYS.USERS),
+                  classes: get(KEYS.CLASSES),
+                  students: get(KEYS.STUDENTS),
+                  activities: get(KEYS.ACTIVITIES),
+                  grades: get(KEYS.GRADES),
+                  enrollments: get(KEYS.ENROLLMENTS),
+                  feedbacks: get(KEYS.FEEDBACKS),
+                  quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
+                  timestamp: new Date().toISOString(),
+                  logo: localStorage.getItem(KEYS.SYSTEM_LOGO)
+              };
+              return JSON.stringify(data);
+          } catch(e) {
+              return "{}";
+          }
       },
       restore: (jsonString: string) => {
           try {
               const data = JSON.parse(jsonString);
-              if(!data.classes || !data.students) throw new Error("Arquivo de backup inválido");
+              if(!data.classes || !data.students) throw new Error("Backup inválido");
               
               set(KEYS.USERS, data.users || []);
               set(KEYS.CLASSES, data.classes);
@@ -295,33 +298,49 @@ export const db = {
               set(KEYS.ENROLLMENTS, data.enrollments || []);
               set(KEYS.FEEDBACKS, data.feedbacks || []);
               set(KEYS.QUIZ_ATTEMPTS, data.quizAttempts || []);
-              if (data.logo) localStorage.setItem(KEYS.SYSTEM_LOGO, data.logo);
+              
+              if (data.logo) {
+                 try {
+                     localStorage.setItem(KEYS.SYSTEM_LOGO, data.logo);
+                 } catch(e) {
+                     console.warn("Could not restore logo due to size limits");
+                 }
+              }
               return true;
           } catch (e) {
-              console.error(e);
               return false;
           }
       },
       runAutoBackup: () => {
-          const data = {
-            users: get(KEYS.USERS),
-            classes: get(KEYS.CLASSES),
-            students: get(KEYS.STUDENTS),
-            activities: get(KEYS.ACTIVITIES),
-            grades: get(KEYS.GRADES),
-            enrollments: get(KEYS.ENROLLMENTS),
-            feedbacks: get(KEYS.FEEDBACKS),
-            quizAttempts: get(KEYS.QUIZ_ATTEMPTS),
-            logo: localStorage.getItem(KEYS.SYSTEM_LOGO),
-            timestamp: new Date().toISOString()
-        };
-        localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));
-        localStorage.setItem(KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
+        try {
+            const data = {
+                users: get(KEYS.USERS),
+                classes: get(KEYS.CLASSES),
+                students: get(KEYS.STUDENTS),
+                // Exclude logo from auto backup to save space
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));
+            localStorage.setItem(KEYS.BACKUP_TIMESTAMP, new Date().toISOString());
+        } catch(e) {
+            console.warn("Auto backup failed (Storage Full)");
+        }
       },
       getAutoBackup: () => localStorage.getItem(KEYS.AUTO_BACKUP),
       getLastBackupTime: () => localStorage.getItem(KEYS.BACKUP_TIMESTAMP),
-      setLogo: (base64: string) => localStorage.setItem(KEYS.SYSTEM_LOGO, base64),
-      getLogo: () => localStorage.getItem(KEYS.SYSTEM_LOGO),
+      setLogo: (base64: string): boolean => {
+          try {
+              localStorage.setItem(KEYS.SYSTEM_LOGO, base64);
+              return true;
+          } catch(e) {
+              return false;
+          }
+      },
+      getLogo: () => {
+          try {
+              return localStorage.getItem(KEYS.SYSTEM_LOGO);
+          } catch(e) { return null; }
+      },
       removeLogo: () => localStorage.removeItem(KEYS.SYSTEM_LOGO)
   }
 };

@@ -35,14 +35,9 @@ const SystemSettings: React.FC = () => {
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    // Check auto backup timestamp
     const ts = db.system.getLastBackupTime();
-    if(ts) {
-        setLastBackupTime(new Date(ts).toLocaleString());
-    }
-    // Load Users
+    if(ts) setLastBackupTime(new Date(ts).toLocaleString());
     setUsers(db.users.getAll());
-    // Load Logo
     setCurrentLogo(db.system.getLogo());
   }, []);
 
@@ -55,28 +50,34 @@ const SystemSettings: React.FC = () => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      if (file.size > 2 * 1024 * 1024) { // 2MB Limit
-          notify('error', 'A imagem deve ter no máximo 2MB.');
+      if (file.size > 500 * 1024) { // 500KB Safety Limit
+          notify('error', 'Imagem muito grande. Use uma imagem menor que 500KB.');
           return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
           const base64 = reader.result as string;
-          db.system.setLogo(base64);
-          setCurrentLogo(base64);
-          notify('success', 'Logo atualizada! A página será recarregada.');
-          setTimeout(() => window.location.reload(), 1500);
+          const success = db.system.setLogo(base64);
+          
+          if (success) {
+              setCurrentLogo(base64);
+              notify('success', 'Logo atualizada com sucesso!');
+              // Only reload if safe
+              setTimeout(() => window.location.reload(), 1500);
+          } else {
+              notify('error', 'Espaço de armazenamento cheio! Tente limpar dados ou usar uma imagem menor.');
+          }
       };
       reader.readAsDataURL(file);
   };
 
   const handleRemoveLogo = () => {
-      if(window.confirm('Deseja remover a logo personalizada e voltar ao padrão?')) {
+      if(window.confirm('Deseja remover a logo personalizada?')) {
           db.system.removeLogo();
           setCurrentLogo(null);
-          notify('info', 'Logo removida. Recarregando...');
-          setTimeout(() => window.location.reload(), 1500);
+          notify('info', 'Logo removida.');
+          setTimeout(() => window.location.reload(), 1000);
       }
   };
 
@@ -226,7 +227,6 @@ const SystemSettings: React.FC = () => {
         {activeTab === 'users' && (
             <div className="space-y-8">
                 
-                {/* 1. Create Teacher Form - ADMIN ONLY */}
                 {isAdmin && (
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                         <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
@@ -272,7 +272,6 @@ const SystemSettings: React.FC = () => {
                     </div>
                 )}
 
-                {/* 2. User List */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-6 border-b border-gray-100 bg-gray-50">
                         <h2 className="text-lg font-bold text-gray-900">Todos os Usuários</h2>
@@ -356,7 +355,7 @@ const SystemSettings: React.FC = () => {
                     </h2>
                     <p className="text-sm text-gray-500 mb-6">
                         Faça upload de uma imagem para substituir o ícone padrão no login e na barra lateral.
-                        <br/>Recomendado: Arquivo PNG com fundo transparente (Max 2MB).
+                        <br/>Recomendado: Arquivo PNG com fundo transparente (Max 500KB).
                     </p>
 
                     <div className="flex flex-col md:flex-row gap-8 items-start">
