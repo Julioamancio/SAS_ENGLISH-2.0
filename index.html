@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -5,35 +6,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SAS ENGLISH TEACHER</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            boxShadow: {
+              'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+              'glow': '0 4px 20px 0px rgba(59, 130, 246, 0.15)',
+            }
+          }
+        }
+      }
+    </script>
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
+        background-color: #F5F7FA; /* Cool, premium gray */
+        color: #1F2937;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
-      /* Custom scrollbar for webkit */
+      
+      /* Modern Scrollbar (Hidden but functional like iOS) */
       ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
+        background: rgba(156, 163, 175, 0.5);
+        border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: rgba(107, 114, 128, 0.8);
       }
+
       .animate-slide-in {
-        animation: slideIn 0.3s ease-out forwards;
+        animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
       .animate-fade-in {
         animation: fadeIn 0.5s ease-out forwards;
       }
+      .glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      
       @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        from { transform: translateY(10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
       }
       @keyframes fadeIn {
         from { opacity: 0; }
