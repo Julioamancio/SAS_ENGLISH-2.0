@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,8 +7,8 @@ import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { db } from '../services/mockDb';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('admin@sas.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [logo, setLogo] = useState<string | null>(null);
@@ -15,8 +16,10 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedLogo = db.system.getLogo();
-    if(savedLogo) setLogo(savedLogo);
+    try {
+        const savedLogo = db.system.getLogo();
+        if(savedLogo) setLogo(savedLogo);
+    } catch(e) { /* ignore */ }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,7 +44,7 @@ const Login: React.FC = () => {
           )}
         </div>
         
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">SAS English</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">SAS ENGLISH TEACHER</h2>
         <p className="text-center text-gray-500 mb-8">Sistema de Gestão Escolar</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -52,7 +55,7 @@ const Login: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-              placeholder="admin@sas.com"
+              placeholder="seu@email.com"
             />
           </div>
 
@@ -82,8 +85,10 @@ const Login: React.FC = () => {
           <Button type="submit" className="w-full py-3">Entrar</Button>
         </form>
         
-        <div className="mt-6 text-center text-xs text-gray-400">
-          Padrão: admin@sas.com / admin123
+        <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+            <p className="text-xs text-gray-400">
+                © 2025 SAS English System
+            </p>
         </div>
       </div>
     </div>

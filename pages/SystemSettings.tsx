@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../services/mockDb';
 import { User } from '../types';
 import Button from '../components/Button';
-import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon, Lock, Image, X } from 'lucide-react';
+import { Download, Upload, Database, Clock, RefreshCw, AlertTriangle, Users, Plus, Trash2, Eye, EyeOff, ShieldCheck, GraduationCap, User as UserIcon, Lock, Image, X, RefreshCcw } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -81,7 +82,7 @@ const SystemSettings: React.FC = () => {
       }
   };
 
-  // --- BACKUP HANDLERS ---
+  // --- BACKUP & RESET HANDLERS ---
 
   const handleDownloadBackup = () => {
     const json = db.system.backup();
@@ -136,6 +137,19 @@ const SystemSettings: React.FC = () => {
     } catch (err) {
         notify('error', 'Erro ao ler arquivo.');
     }
+  };
+
+  const handleFactoryReset = () => {
+      if (!isAdmin) return;
+      const confirm1 = window.confirm("PERIGO: Você tem certeza que deseja resetar o sistema?");
+      if (confirm1) {
+          const confirm2 = window.confirm("Esta ação é IRREVERSÍVEL. Todos os dados (Alunos, Turmas, Notas, Usuários) serão APAGADOS. Continuar?");
+          if (confirm2) {
+              localStorage.clear();
+              notify('success', 'Sistema resetado. Reiniciando...');
+              setTimeout(() => window.location.reload(), 1500);
+          }
+      }
   };
 
   // --- USER HANDLERS ---
@@ -467,6 +481,25 @@ const SystemSettings: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                {/* SYSTEM RESET - ADMIN ONLY */}
+                {isAdmin && (
+                    <div className="bg-red-100 p-6 rounded-xl border-2 border-red-300 mt-8">
+                        <div className="flex items-center mb-2">
+                            <AlertTriangle className="text-red-600 mr-2" size={24} />
+                            <h2 className="text-lg font-bold text-red-800">Reset de Fábrica do Sistema</h2>
+                        </div>
+                        <p className="text-sm text-red-700 mb-6">
+                            Esta ação limpará <strong>TODOS</strong> os dados do navegador (Alunos, Notas, Configurações, Usuários). 
+                            O sistema voltará ao estado inicial. Use apenas em caso de emergência ou para reiniciar o ano letivo.
+                        </p>
+                        <div className="flex justify-end">
+                            <Button variant="danger" onClick={handleFactoryReset} className="bg-red-700 hover:bg-red-800">
+                                <RefreshCcw size={18} className="mr-2" /> Apagar Tudo e Resetar
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         )}
     </div>

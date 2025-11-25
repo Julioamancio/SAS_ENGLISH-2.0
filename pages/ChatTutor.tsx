@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { chatWithAi, analyzeGrammar } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { Send, Bot, User, SpellCheck, AlertTriangle, Check, ArrowRight, CornerDownLeft, Flag } from 'lucide-react';
+import { Send, Bot, User, SpellCheck, AlertTriangle, Check, ArrowRight, CornerDownLeft, Flag, Volume2, Mic, MicOff, StopCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 const ChatTutor: React.FC = () => {
@@ -12,11 +12,16 @@ const ChatTutor: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('Thinking...');
   const [reportedMessages, setReportedMessages] = useState<Set<string>>(new Set());
+  
+  // Audio State
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
-    // Small timeout to ensure DOM is rendered
     setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
@@ -26,16 +31,72 @@ const ChatTutor: React.FC = () => {
     scrollToBottom();
   }, [messages, loading]);
 
+  // --- AUDIO LOGIC ---
+  const speak = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop current
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const stopSpeaking = () => {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+  };
+
+  const toggleListening = () => {
+      if (isListening) {
+          recognitionRef.current?.stop();
+          setIsListening(false);
+          return;
+      }
+
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+          alert("Your browser does not support Speech Recognition. Try Chrome.");
+          return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (event: any) => {
+          console.error("Speech error", event.error);
+          setIsListening(false);
+      };
+      
+      recognition.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(prev => prev + (prev ? ' ' : '') + transcript);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+  };
+  // -------------------
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     
+    stopSpeaking(); // Stop AI if interrupting
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: input, timestamp: Date.now() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
     setLoadingText('Thinking...');
 
-    // Format history for Gemini
     const history = messages.map(m => ({
       role: m.role,
       parts: [{ text: m.text }]
@@ -45,17 +106,20 @@ const ChatTutor: React.FC = () => {
       const responseText = await chatWithAi(userMsg.text, history);
       const aiMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: 'model', text: responseText, timestamp: Date.now() };
       setMessages(prev => [...prev, aiMsg]);
+      
+      // Auto-speak response if needed (optional, here triggered manually by user mostly)
+      // speak(responseText); 
     } catch (e) {
-      setMessages(prev => [...prev, { id: 'err', role: 'model', text: "I'm having trouble connecting right now. Please try again.", timestamp: Date.now() }]);
+      setMessages(prev => [...prev, { id: 'err', role: 'model', text: "Connection error. Please try again.", timestamp: Date.now() }]);
     } finally {
       setLoading(false);
-      // Focus input again
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
   const handleGrammarCheck = async () => {
     if (!input.trim() || loading) return;
+    stopSpeaking();
 
     const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: input, timestamp: Date.now() };
     setMessages(prev => [...prev, userMsg]);
@@ -68,13 +132,13 @@ const ChatTutor: React.FC = () => {
       const aiMsg: ChatMessage = { 
         id: (Date.now() + 1).toString(), 
         role: 'model', 
-        text: "Here is the grammar analysis of your text:", 
+        text: "Here is the grammar analysis:", 
         timestamp: Date.now(),
         grammarAnalysis: analysis
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (e) {
-        setMessages(prev => [...prev, { id: 'err', role: 'model', text: "Sorry, I couldn't analyze the grammar right now.", timestamp: Date.now() }]);
+        setMessages(prev => [...prev, { id: 'err', role: 'model', text: "Couldn't analyze grammar.", timestamp: Date.now() }]);
     } finally {
         setLoading(false);
         setTimeout(() => inputRef.current?.focus(), 100);
@@ -95,8 +159,6 @@ const ChatTutor: React.FC = () => {
         newSet.add(id);
         return newSet;
     });
-    // In a real app, this would trigger an API call to log the feedback
-    console.log(`Reported issue for message ${id}`);
   };
 
   const formatTime = (timestamp: number) => {
@@ -106,17 +168,25 @@ const ChatTutor: React.FC = () => {
   return (
     <div className="h-[calc(100vh-2rem)] flex flex-col max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 p-4 flex items-center shadow-sm z-10 sticky top-0">
-         <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white mr-3 shadow-md">
-           <Bot size={24} />
+      <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between shadow-sm z-10 sticky top-0">
+         <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center text-white mr-3 shadow-md">
+                <Bot size={24} />
+            </div>
+            <div>
+                <h2 className="font-bold text-gray-900">SAS AI Tutor</h2>
+                <div className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-0.5">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></div>
+                    Online
+                </div>
+            </div>
          </div>
-         <div>
-           <h2 className="font-bold text-gray-900">SAS AI Tutor</h2>
-           <div className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-0.5">
-             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></div>
-             Online
-           </div>
-         </div>
+         
+         {isSpeaking && (
+             <button onClick={stopSpeaking} className="flex items-center text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-full font-bold animate-pulse border border-red-100">
+                 <StopCircle size={14} className="mr-1.5" /> Stop Audio
+             </button>
+         )}
       </div>
 
       {/* Messages */}
@@ -147,15 +217,11 @@ const ChatTutor: React.FC = () => {
                                         li: ({node, ...props}) => <li className="pl-1" {...props} />,
                                         h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-2 mb-1" {...props} />,
                                         h2: ({node, ...props}) => <h2 className="text-base font-bold mt-2 mb-1" {...props} />,
-                                        h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-1" {...props} />,
-                                        blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-200 pl-3 italic text-gray-500 my-2" {...props} />,
                                         code: ({node, inline, className, children, ...props}: any) => {
                                             return inline ? 
                                                 <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono text-pink-600 border border-gray-200" {...props}>{children}</code> :
                                                 <code className="block bg-gray-800 text-white p-3 rounded-lg text-xs font-mono overflow-x-auto my-2" {...props}>{children}</code>
-                                        },
-                                        a: ({node, ...props}) => <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
-                                        strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                                        }
                                     }}
                                 >
                                     {msg.text}
@@ -163,7 +229,18 @@ const ChatTutor: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Grammar Analysis Report Render */}
+                        {/* Audio Button for AI */}
+                        {msg.role === 'model' && (
+                            <button 
+                                onClick={() => speak(msg.text)} 
+                                className="absolute -top-3 -right-3 bg-white p-1.5 rounded-full shadow border border-gray-200 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Listen"
+                            >
+                                <Volume2 size={14} />
+                            </button>
+                        )}
+
+                        {/* Grammar Analysis Report */}
                         {msg.grammarAnalysis && (
                         <div className="mt-4 space-y-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
                             <div className="bg-white p-3 rounded-lg border border-emerald-100 shadow-sm relative">
@@ -176,7 +253,6 @@ const ChatTutor: React.FC = () => {
                                 <button
                                     onClick={() => setInput(msg.grammarAnalysis!.correctedText)}
                                     className="absolute top-2 right-2 p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                    title="Replace input with corrected version"
                                 >
                                     <CornerDownLeft size={16} />
                                 </button>
@@ -199,7 +275,6 @@ const ChatTutor: React.FC = () => {
                                         <button
                                             onClick={() => handleApplyCorrection(err.correction)}
                                             className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex-shrink-0 border border-blue-100"
-                                            title="Apply this correction to input"
                                         >
                                             <CornerDownLeft size={16} />
                                         </button>
@@ -222,7 +297,6 @@ const ChatTutor: React.FC = () => {
                                         ? 'text-emerald-600 bg-emerald-50 cursor-default' 
                                         : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
                                     }`}
-                                    title="Report inaccurate analysis"
                                 >
                                     {reportedMessages.has(msg.id) ? (
                                         <>Feedback Sent <Check size={10} className="ml-1" /></>
@@ -268,44 +342,47 @@ const ChatTutor: React.FC = () => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
               disabled={loading}
-              placeholder="Type your message or text to analyze..."
-              className="w-full p-3 pl-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 text-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Type or use microphone..."
+              className="w-full p-3 pl-4 pr-10 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 text-gray-800 disabled:opacity-60 disabled:cursor-not-allowed"
             />
+            {/* Mic Button */}
+            <button 
+                onClick={toggleListening}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-1.5 rounded-full transition-colors ${
+                    isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'text-gray-400 hover:text-blue-600'
+                }`}
+                title="Speak"
+            >
+                {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
           </div>
 
           <button 
               onClick={handleGrammarCheck} 
               disabled={!input.trim() || loading} 
-              className={`p-3 md:px-4 md:py-3 rounded-xl transition-all duration-200 flex items-center justify-center border font-medium
+              className={`p-3 rounded-xl transition-all duration-200 flex items-center justify-center border font-medium
                   ${!input.trim() || loading 
                     ? 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed' 
-                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 shadow-sm active:scale-95'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300'
                   }
               `}
               title="Check Grammar"
           >
-              <SpellCheck size={20} className="md:mr-2" />
-              <span className="hidden md:inline">Check Grammar</span>
+              <SpellCheck size={20} />
           </button>
 
           <button 
               onClick={handleSend} 
               disabled={!input.trim() || loading} 
-              className={`p-3 md:px-4 md:py-3 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md border border-transparent font-medium
+              className={`p-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-md border border-transparent font-medium
                   ${!input.trim() || loading 
                     ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
                     : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 hover:shadow-lg'
                   }
               `}
-              title="Send Message"
           >
-              <Send size={20} className="md:mr-2" />
-              <span className="hidden md:inline">Send</span>
+              <Send size={20} />
           </button>
-        </div>
-        
-        <div className="text-center mt-2">
-            <p className="text-[10px] text-gray-400">AI can make mistakes. Please review critical information.</p>
         </div>
       </div>
     </div>

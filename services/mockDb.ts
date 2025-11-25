@@ -57,7 +57,7 @@ const seedData = () => {
       } catch (e) { /* ignore */ }
 
       // 2. Ensure Admin Exists
-      const existingUsers = get<User>(KEYS.USERS);
+      let existingUsers = get<User>(KEYS.USERS);
       if (!existingUsers.find((u: User) => u.email === 'admin@sas.com')) {
           const adminUser: User = { 
               id: 'admin', 
@@ -66,7 +66,9 @@ const seedData = () => {
               role: 'admin',
               password: 'admin123'
           };
-          set(KEYS.USERS, [...existingUsers, adminUser]);
+          // Force write admin if it's missing
+          existingUsers = [...existingUsers, adminUser];
+          set(KEYS.USERS, existingUsers);
       }
       
       // 3. Sync students without login
@@ -93,35 +95,36 @@ const seedData = () => {
           set(KEYS.USERS, users);
       }
 
-      if (localStorage.getItem(KEYS.CLASSES)) return;
+      // Check if DB is basically empty (first run)
+      if (!localStorage.getItem(KEYS.CLASSES)) {
+          // 4. Initial Seed if empty
+          const classes: ClassGroup[] = [
+            { 
+              id: 'c1', 
+              name: 'Inglês 101 - A1', 
+              level: 'A1', 
+              schedule: 'Seg/Qua 08:00', 
+              teacherId: 'admin',
+              stages: DEFAULT_STAGES
+            },
+            { 
+              id: 'c2', 
+              name: 'Inglês Negócios - B2', 
+              level: 'B2', 
+              schedule: 'Ter/Qui 19:00', 
+              teacherId: 'admin',
+              stages: DEFAULT_STAGES
+            }
+          ];
 
-      // 4. Initial Seed if empty
-      const classes: ClassGroup[] = [
-        { 
-          id: 'c1', 
-          name: 'Inglês 101 - A1', 
-          level: 'A1', 
-          schedule: 'Seg/Qua 08:00', 
-          teacherId: 'admin',
-          stages: DEFAULT_STAGES
-        },
-        { 
-          id: 'c2', 
-          name: 'Inglês Negócios - B2', 
-          level: 'B2', 
-          schedule: 'Ter/Qui 19:00', 
-          teacherId: 'admin',
-          stages: DEFAULT_STAGES
-        }
-      ];
-
-      set(KEYS.CLASSES, classes);
-      set(KEYS.STUDENTS, []);
-      set(KEYS.ENROLLMENTS, []);
-      set(KEYS.ACTIVITIES, []);
-      set(KEYS.GRADES, []);
-      set(KEYS.FEEDBACKS, []);
-      set(KEYS.QUIZ_ATTEMPTS, []);
+          set(KEYS.CLASSES, classes);
+          set(KEYS.STUDENTS, []);
+          set(KEYS.ENROLLMENTS, []);
+          set(KEYS.ACTIVITIES, []);
+          set(KEYS.GRADES, []);
+          set(KEYS.FEEDBACKS, []);
+          set(KEYS.QUIZ_ATTEMPTS, []);
+      }
   } catch (e) {
       console.error("Critical Error during DB Init", e);
   }
@@ -202,6 +205,7 @@ export const db = {
   },
 
   activities: {
+    getAll: () => get<Activity>(KEYS.ACTIVITIES),
     getByClass: (classId: string) => get<Activity>(KEYS.ACTIVITIES).filter(a => a.classId === classId),
     add: (act: Activity) => set(KEYS.ACTIVITIES, [...get(KEYS.ACTIVITIES), act]),
     delete: (id: string) => set(KEYS.ACTIVITIES, get<Activity>(KEYS.ACTIVITIES).filter(a => a.id !== id)),
@@ -225,6 +229,7 @@ export const db = {
   },
 
   feedbacks: {
+    getAll: () => get<Feedback>(KEYS.FEEDBACKS),
     getByClassAndStage: (classId: string, stageId: string) => 
         get<Feedback>(KEYS.FEEDBACKS).filter(f => f.classId === classId && f.stageId === stageId),
     save: (feedback: Feedback) => {
@@ -239,6 +244,7 @@ export const db = {
   },
 
   enrollments: {
+    getAll: () => get<Enrollment>(KEYS.ENROLLMENTS),
     enroll: (classId: string, studentId: string) => {
         const all = get<Enrollment>(KEYS.ENROLLMENTS);
         if(!all.find(e => e.classId === classId && e.studentId === studentId && e.active)) {
@@ -317,7 +323,6 @@ export const db = {
                 users: get(KEYS.USERS),
                 classes: get(KEYS.CLASSES),
                 students: get(KEYS.STUDENTS),
-                // Exclude logo from auto backup to save space
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(KEYS.AUTO_BACKUP, JSON.stringify(data));

@@ -25,17 +25,19 @@ const Navigation: React.FC = () => {
   const getNavItems = () => {
     const items = [];
 
-    // 1. Dashboard & Classes (Admin & Teacher Only)
+    // 1. Dashboard (Everyone)
+    items.push({ to: "/", icon: <LayoutDashboard size={20} />, label: "Painel" });
+
+    // 2. Classes (Admin & Teacher Only)
     if (isAdmin || isTeacher) {
-        items.push({ to: "/", icon: <LayoutDashboard size={20} />, label: "Painel" });
         items.push({ to: "/classes", icon: <Users size={20} />, label: "Turmas e Alunos" });
     }
 
-    // 2. Learning Tools (Everyone)
+    // 3. Learning Tools (Everyone)
     items.push({ to: "/grammar-book", icon: <Library size={20} />, label: "Grammar Book" });
     items.push({ to: "/ai-tools", icon: <BookOpen size={20} />, label: "Ferramentas IA" });
 
-    // 3. Settings (Admin & Teacher Only - Logic handled inside page for specific permissions)
+    // 4. Settings (Admin & Teacher Only)
     if (isAdmin || isTeacher) {
         items.push({ to: "/settings", icon: <Settings size={20} />, label: "Configurações" });
     }
@@ -56,7 +58,7 @@ const Navigation: React.FC = () => {
                     <GraduationCap size={18} />
                 </div>
             )}
-            {!logo && <span className="text-xl font-bold text-gray-800">SAS English</span>}
+            {!logo && <span className="text-lg font-bold text-gray-800 leading-tight">SAS ENGLISH<br/>TEACHER</span>}
         </div>
         <div className="mt-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
             {user?.role === 'admin' ? 'Administrador' : user?.role === 'teacher' ? 'Professor' : 'Aluno'}

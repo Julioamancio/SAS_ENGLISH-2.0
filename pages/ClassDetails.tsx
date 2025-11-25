@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { db } from '../services/mockDb';
@@ -203,7 +204,7 @@ const ClassDetails: React.FC = () => {
   // --- Handlers for Import/Export ---
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !id) return;
+    if (!file || !id || !cls) return;
 
     setIsImporting(true);
     try {
@@ -213,44 +214,75 @@ const ClassDetails: React.FC = () => {
         const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
         
         let count = 0;
-        rows.forEach((row, index) => {
-            const name = row[0]; // Assuming Column A is name
-            if (!name || typeof name !== 'string') return;
-            // Simple check to skip header if it says "Name"
-            if (index === 0 && (name.toLowerCase() === 'name' || name.toLowerCase() === 'nome')) return;
+        const suffixes = new Set<string>();
+        let detectedTeacher = "";
+        let detectedLevel = "";
 
-            // Generate fake email based on name if not provided
+        rows.forEach((row, index) => {
+            // Skip header (simple check)
+            if (index === 0) return;
+
+            // Columns: A=Name, B=Class, C=Teacher, D=Level
+            const name = row[0] as string; 
+            const origClass = row[1] as string; // e.g. FUND-9A
+            const teacher = row[2] as string;   // e.g. Renata
+            const level = row[3] as string;     // e.g. 9.1
+
+            if (!name || typeof name !== 'string') return;
+
+            // 1. Collect Metadata for renaming
+            if (origClass) {
+                const lastChar = origClass.trim().slice(-1).toUpperCase();
+                if (/[A-Z]/.test(lastChar)) suffixes.add(lastChar);
+            }
+            if (teacher && !detectedTeacher) detectedTeacher = teacher;
+            if (level && !detectedLevel) detectedLevel = level;
+
+            // 2. Create Student
             const studentId = `s_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-            const email = row[1] || `${name.toLowerCase().replace(/[^a-z]/g, '.')}@sas.student.com`; // Try Column B for email
+            const email = `${name.toLowerCase().replace(/[^a-z]/g, '.').slice(0, 20)}@sas.student.com`;
             
             const newStudent: Student = {
                 id: studentId,
                 name: name.trim(),
                 email: email,
-                enrollmentDate: new Date().toISOString().split('T')[0]
+                enrollmentDate: new Date().toISOString().split('T')[0],
+                originalClass: origClass,
+                originalTeacher: teacher,
+                originalLevel: level
             };
             
-            // Create user account for student automatically
+            // 3. Create User
             const studentUser = {
                 id: newStudent.id,
                 name: newStudent.name,
                 email: newStudent.email,
                 role: 'student' as const,
-                password: '123' // Default password
+                password: '123'
             };
 
-            // Avoid duplicates check could be added here
             db.students.add(newStudent);
             db.users.add(studentUser);
             db.enrollments.enroll(id, studentId);
             count++;
         });
 
+        // 4. Auto-Rename Class Logic
+        if (detectedTeacher && detectedLevel) {
+            const sortedSuffixes = Array.from(suffixes).sort().join(''); // e.g. "ABC"
+            const newClassName = `${detectedTeacher} - ${detectedLevel} ${sortedSuffixes}`.trim();
+            
+            const updatedClass = { ...cls, name: newClassName };
+            db.classes.update(updatedClass);
+            setCls(updatedClass); // Update local state immediately
+            notify('success', `Turma renomeada para: ${newClassName}`);
+        }
+
         refreshData();
         notify('success', `Importados ${count} alunos com sucesso.`);
     } catch (error) {
         console.error(error);
-        notify('error', "Falha na importação. Verifique se o arquivo é .xlsx");
+        notify('error', "Falha na importação. Verifique se o arquivo tem as colunas A, B, C, D preenchidas.");
     } finally {
         setIsImporting(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -259,7 +291,13 @@ const ClassDetails: React.FC = () => {
 
   const handleExport = () => {
       const data = students.map(s => {
-          const row: any = { Nome: s.name, Email: s.email };
+          const row: any = { 
+              Nome: s.name, 
+              Email: s.email,
+              'Turma Orig': s.originalClass || '',
+              'Prof': s.originalTeacher || '',
+              'Nivel': s.originalLevel || ''
+          };
           // Add grades
           activities.forEach(a => {
               const g = grades.find(x => x.activityId === a.id && x.studentId === s.id);
@@ -342,7 +380,7 @@ const ClassDetails: React.FC = () => {
       
       const email = prompt("Email do Aluno (opcional):") || `${name.toLowerCase().replace(/[^a-z]/g, '.')}@sas.student.com`;
       
-      const newStudent = {
+      const newStudent: Student = {
           id: `s_${Date.now()}`,
           name,
           email,
@@ -479,7 +517,8 @@ const ClassDetails: React.FC = () => {
                         <tr>
                             <th className="p-4">Nome</th>
                             <th className="p-4 hidden md:table-cell">Email</th>
-                            <th className="p-4 hidden md:table-cell">Entrada</th>
+                            <th className="p-4 hidden lg:table-cell">Turma Orig.</th>
+                            <th className="p-4 hidden lg:table-cell">Prof / Nível</th>
                             <th className="p-4 text-right">Ações</th>
                         </tr>
                     </thead>
@@ -488,7 +527,17 @@ const ClassDetails: React.FC = () => {
                             <tr key={s.id}>
                                 <td className="p-4 font-medium text-gray-900">{s.name}</td>
                                 <td className="p-4 text-gray-500 hidden md:table-cell">{s.email}</td>
-                                <td className="p-4 text-gray-500 hidden md:table-cell">{s.enrollmentDate}</td>
+                                <td className="p-4 text-gray-500 hidden lg:table-cell">
+                                    {s.originalClass ? (
+                                        <span className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono">
+                                            {s.originalClass}
+                                        </span>
+                                    ) : '-'}
+                                </td>
+                                <td className="p-4 text-gray-500 hidden lg:table-cell">
+                                    {s.originalTeacher && <span className="block text-xs font-bold">{s.originalTeacher}</span>}
+                                    {s.originalLevel && <span className="block text-xs text-gray-400">{s.originalLevel}</span>}
+                                </td>
                                 <td className="p-4 text-right space-x-2">
                                     <button 
                                         onClick={() => initiateTransfer(s)}
@@ -501,7 +550,7 @@ const ClassDetails: React.FC = () => {
                         ))}
                         {students.length === 0 && (
                              <tr>
-                                 <td colSpan={4} className="p-8 text-center text-gray-500">
+                                 <td colSpan={5} className="p-8 text-center text-gray-500">
                                      Nenhum aluno matriculado.
                                  </td>
                              </tr>
@@ -519,7 +568,7 @@ const ClassDetails: React.FC = () => {
                     
                     <Button variant="outline" className="w-full md:w-auto" onClick={() => fileInputRef.current?.click()} isLoading={isImporting}>
                         <FileSpreadsheet size={16} className="mr-2 text-green-600" /> 
-                        {isImporting ? 'Importando...' : 'Importar Excel (Col A)'}
+                        {isImporting ? 'Importando...' : 'Importar Excel (Col A, B, C, D)'}
                     </Button>
 
                     <Button variant="primary" className="w-full md:w-auto" onClick={handleManualEnroll}>

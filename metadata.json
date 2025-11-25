@@ -1,5 +1,5 @@
 {
-  "name": "SAS English AI",
+  "name": "SAS ENGLISH TEACHER",
   "description": "A Smart Assessment System for English learning. Features AI-powered grammar analysis, dynamic quiz generation, and personalized study planning using Google Gemini.",
   "requestFramePermissions": [
     "microphone"

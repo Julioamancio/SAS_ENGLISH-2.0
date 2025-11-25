@@ -1,3 +1,4 @@
+
 export enum Difficulty {
   A1 = 'A1',
   A2 = 'A2',
@@ -50,6 +51,10 @@ export interface Student {
   name: string;
   email: string;
   enrollmentDate: string;
+  // Fields for Excel Import Metadata
+  originalClass?: string;   // Col B (e.g., FUND-9A)
+  originalTeacher?: string; // Col C (e.g., Renata)
+  originalLevel?: string;   // Col D (e.g., 9.1)
 }
 
 export interface StageConfig {
@@ -136,4 +141,44 @@ export interface ChatMessage {
   text: string;
   timestamp: number;
   grammarAnalysis?: GrammarAnalysis;
+}
+
+// --- GRAMMAR BOOK TYPES ---
+
+export interface GrammarForm {
+  structure: string;
+  examples: string[];
+}
+
+export interface CommonMistake {
+  wrong: string;
+  right: string;
+  explanation: string;
+}
+
+export interface GrammarTopic {
+  id: string;
+  title: string;
+  iconName: string; // Changed to string to store icon name instead of component
+  summary: string; 
+  definition: string;
+  deepDive: string[];
+  signalWords: string[];
+  forms: {
+    positive: GrammarForm;
+    negative: GrammarForm;
+    question: GrammarForm;
+  };
+  commonMistakes?: CommonMistake[];
+  proTip?: string;
+}
+
+export interface LevelData {
+  id: string;
+  label: string;
+  color: string;
+  bg: string;
+  borderColor: string;
+  description: string;
+  topics: GrammarTopic[];
 }
