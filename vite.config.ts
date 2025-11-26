@@ -7,10 +7,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(process.cwd(), './src'),
     },
   },
-  // IMPORTANT: This fixes the "process is not defined" crash on Render
+  // FIX WHITE SCREEN ON RENDER: Define process.env as an empty object so accessing it doesn't crash the app
   define: {
     'process.env': {}
   },

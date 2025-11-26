@@ -1,16 +1,25 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Difficulty, QuizQuestion, GrammarAnalysis, StudyPlan, QuizMode, QuizData } from "../types";
 
-// 1. SAFE KEY RETRIEVAL (Fixes White Screen on Render)
+// CORREÇÃO CRÍTICA PARA TELA BRANCA:
+// 1. Tenta pegar do Vite (padrão navegador)
+// 2. Tenta pegar do process (padrão servidor/local)
+// 3. Retorna string vazia se falhar (não trava o app)
 const getApiKey = () => {
-    // Vite uses import.meta.env.VITE_... by default
-    if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-        return import.meta.env.VITE_GEMINI_API_KEY;
-    }
-    // Fallback for local/process env if defined (rare in browser)
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-        return process.env.API_KEY;
-    }
+    try {
+        // @ts-ignore
+        if (import.meta && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+            // @ts-ignore
+            return import.meta.env.VITE_GEMINI_API_KEY;
+        }
+    } catch (e) {}
+
+    try {
+        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+            return process.env.API_KEY;
+        }
+    } catch (e) {}
+
     return '';
 };
 
@@ -20,12 +29,12 @@ if (!API_KEY) {
     console.warn("Gemini API Key is missing! AI features will fail.");
 }
 
+// Inicializa com chave segura (mesmo que vazia) para não travar o site no load
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
-// ... (Rest of the file remains exactly the same logic)
 // Helper to enforce CEFR complexity
 const getCefrGuidelines = (level: Difficulty): string => {
   switch (level) {
@@ -47,7 +56,8 @@ const getCefrGuidelines = (level: Difficulty): string => {
 };
 
 export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizMode): Promise<QuizData> => {
-  
+  if (!API_KEY) throw new Error("API Key missing. Configure VITE_GEMINI_API_KEY in settings.");
+
   const cefrInstruction = getCefrGuidelines(level);
   let prompt = "";
   
@@ -55,8 +65,8 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
       topic.includes('Tirinha') || 
       topic.includes('Charge') || 
       topic.includes('Cartum') || 
-      topic.includes('Propaganda') || 
-      topic.includes('Infográfico') || 
+      topic.includes('Propaganda') ||
+      topic.includes('Infográfico') ||
       topic.includes('HQ')
   );
 
@@ -210,6 +220,7 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
 };
 
 export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis> => {
+  if (!API_KEY) throw new Error("API Key missing.");
   const prompt = `Analyze the following English text for grammar, spelling, and style errors. Provide a corrected version and a list of specific errors with explanations IN ENGLISH. Text: "${textInput}"`;
 
   try {
@@ -251,6 +262,7 @@ export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis
 
 // NEW: Rewrite Text Feature
 export const rewriteText = async (textInput: string, tone: 'Formal' | 'Casual' | 'Native' | 'Concise'): Promise<string> => {
+    if (!API_KEY) return "Error: API Key Missing";
     const prompt = `Rewrite the following text to make it more ${tone}. Keep the meaning but change the style. Text: "${textInput}". Return ONLY the rewritten text.`;
     try {
         const response = await ai.models.generateContent({
@@ -262,6 +274,7 @@ export const rewriteText = async (textInput: string, tone: 'Formal' | 'Casual' |
 
 // NEW: Suggest Reply Feature
 export const suggestReply = async (history: { role: string, parts: { text: string }[] }[]): Promise<string> => {
+    if (!API_KEY) return "Error: API Key Missing";
     try {
         const chat = ai.chats.create({ model: TEXT_MODEL, history });
         const result = await chat.sendMessage({ message: "[SYSTEM: The user is stuck. Provide 3 short, natural suggested responses they could say next in this conversation context. Just list the options.]" });
@@ -270,6 +283,7 @@ export const suggestReply = async (history: { role: string, parts: { text: strin
 };
 
 export const createStudyPlan = async (goal: string, level: Difficulty, days: number): Promise<StudyPlan> => {
+  if (!API_KEY) throw new Error("API Key missing.");
   const prompt = `Create a ${days}-day English study plan for a ${level} student who wants to: ${goal}. The output MUST be in English.`;
 
   try {
@@ -311,6 +325,7 @@ export const createStudyPlan = async (goal: string, level: Difficulty, days: num
 };
 
 export const chatWithAi = async (message: string, history: { role: string, parts: { text: string }[] }[], systemInstruction?: string) => {
+  if (!API_KEY) throw new Error("API Key missing.");
   try {
     const chat = ai.chats.create({
       model: TEXT_MODEL,
