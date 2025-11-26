@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Difficulty, QuizQuestion, GrammarAnalysis, StudyPlan, QuizMode, QuizData } from "../types";
 
+// API Key must be obtained exclusively from process.env.API_KEY
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const TEXT_MODEL = 'gemini-2.5-flash';
@@ -229,6 +230,26 @@ export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis
   }
 };
 
+// NEW: Rewrite Text Feature
+export const rewriteText = async (textInput: string, tone: 'Formal' | 'Casual' | 'Native' | 'Concise'): Promise<string> => {
+    const prompt = `Rewrite the following text to make it more ${tone}. Keep the meaning but change the style. Text: "${textInput}". Return ONLY the rewritten text.`;
+    try {
+        const response = await ai.models.generateContent({
+            model: TEXT_MODEL, contents: prompt
+        });
+        return response.text || "";
+    } catch (e) { return "Error rewriting text."; }
+};
+
+// NEW: Suggest Reply Feature
+export const suggestReply = async (history: { role: string, parts: { text: string }[] }[]): Promise<string> => {
+    try {
+        const chat = ai.chats.create({ model: TEXT_MODEL, history });
+        const result = await chat.sendMessage({ message: "[SYSTEM: The user is stuck. Provide 3 short, natural suggested responses they could say next in this conversation context. Just list the options.]" });
+        return result.text || "";
+    } catch (e) { return ""; }
+};
+
 export const createStudyPlan = async (goal: string, level: Difficulty, days: number): Promise<StudyPlan> => {
   const prompt = `Create a ${days}-day English study plan for a ${level} student who wants to: ${goal}. The output MUST be in English.`;
 
@@ -270,13 +291,13 @@ export const createStudyPlan = async (goal: string, level: Difficulty, days: num
   }
 };
 
-export const chatWithAi = async (message: string, history: { role: string, parts: { text: string }[] }[]) => {
+export const chatWithAi = async (message: string, history: { role: string, parts: { text: string }[] }[], systemInstruction?: string) => {
   try {
     const chat = ai.chats.create({
       model: TEXT_MODEL,
       history: history,
       config: {
-        systemInstruction: "You are a helpful, encouraging, and highly knowledgeable English tutor named 'SAS AI'. You help students improve their English skills. Keep answers concise but educational. ALL RESPONSES MUST BE IN ENGLISH.",
+        systemInstruction: systemInstruction || "You are a helpful, encouraging, and highly knowledgeable English tutor named 'SAS AI'. You help students improve their English skills. Keep answers concise but educational. ALL RESPONSES MUST BE IN ENGLISH.",
       }
     });
 
