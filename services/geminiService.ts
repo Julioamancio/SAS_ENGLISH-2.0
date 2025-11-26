@@ -1,12 +1,31 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Difficulty, QuizQuestion, GrammarAnalysis, StudyPlan, QuizMode, QuizData } from "../types";
 
-// API Key must be obtained exclusively from process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// 1. SAFE KEY RETRIEVAL (Fixes White Screen on Render)
+const getApiKey = () => {
+    // Vite uses import.meta.env.VITE_... by default
+    if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+        return import.meta.env.VITE_GEMINI_API_KEY;
+    }
+    // Fallback for local/process env if defined (rare in browser)
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+        return process.env.API_KEY;
+    }
+    return '';
+};
+
+const API_KEY = getApiKey();
+
+if (!API_KEY) {
+    console.warn("Gemini API Key is missing! AI features will fail.");
+}
+
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
 
+// ... (Rest of the file remains exactly the same logic)
 // Helper to enforce CEFR complexity
 const getCefrGuidelines = (level: Difficulty): string => {
   switch (level) {
@@ -36,8 +55,8 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
       topic.includes('Tirinha') || 
       topic.includes('Charge') || 
       topic.includes('Cartum') || 
-      topic.includes('Propaganda') ||
-      topic.includes('Infográfico') ||
+      topic.includes('Propaganda') || 
+      topic.includes('Infográfico') || 
       topic.includes('HQ')
   );
 
