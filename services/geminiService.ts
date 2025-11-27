@@ -1,9 +1,35 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Difficulty, QuizQuestion, GrammarAnalysis, StudyPlan, QuizMode, QuizData } from "../types";
 
-// FIX: Use process.env.API_KEY as per coding guidelines.
-// Assume process.env.API_KEY is pre-configured and valid.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// --- SAFE API KEY RETRIEVAL ---
+const getApiKey = () => {
+    try {
+        // 1. Vite Standard (Render uses this during build if set in Environment Variables)
+        // @ts-ignore
+        if (import.meta && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+            // @ts-ignore
+            return import.meta.env.VITE_GEMINI_API_KEY;
+        }
+        
+        // 2. Process Fallback (Local Dev / Polyfill)
+        if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+            return process.env.API_KEY;
+        }
+    } catch (e) {
+        // Ignore access errors
+    }
+    return '';
+};
+
+const API_KEY = getApiKey();
+
+if (!API_KEY) {
+    console.warn("⚠️ Gemini API Key missing. AI features will not work. Add VITE_GEMINI_API_KEY to Render Environment Variables.");
+}
+
+// Initialize with fallback to prevent immediate crash on app load.
+// The 'dummy_key' allows the app to render; calls will fail gracefully with a clear error later.
+const ai = new GoogleGenAI({ apiKey: API_KEY || 'dummy_key_to_prevent_crash' });
 
 const TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL = 'gemini-2.5-flash-image';
@@ -29,7 +55,7 @@ const getCefrGuidelines = (level: Difficulty): string => {
 };
 
 export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizMode): Promise<QuizData> => {
-  if (!process.env.API_KEY) throw new Error("API Key missing.");
+  if (!API_KEY) throw new Error("API Key missing. Please configure VITE_GEMINI_API_KEY.");
 
   const cefrInstruction = getCefrGuidelines(level);
   let prompt = "";
@@ -193,7 +219,7 @@ export const generateQuiz = async (topic: string, level: Difficulty, mode: QuizM
 };
 
 export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis> => {
-  if (!process.env.API_KEY) throw new Error("API Key missing.");
+  if (!API_KEY) throw new Error("API Key missing.");
   const prompt = `Analyze the following English text for grammar, spelling, and style errors. Provide a corrected version and a list of specific errors with explanations IN ENGLISH. Text: "${textInput}"`;
 
   try {
@@ -235,7 +261,7 @@ export const analyzeGrammar = async (textInput: string): Promise<GrammarAnalysis
 
 // NEW: Rewrite Text Feature
 export const rewriteText = async (textInput: string, tone: 'Formal' | 'Casual' | 'Native' | 'Concise'): Promise<string> => {
-    if (!process.env.API_KEY) return "Error: API Key Missing";
+    if (!API_KEY) return "Error: API Key Missing";
     const prompt = `Rewrite the following text to make it more ${tone}. Keep the meaning but change the style. Text: "${textInput}". Return ONLY the rewritten text.`;
     try {
         const response = await ai.models.generateContent({
@@ -247,7 +273,7 @@ export const rewriteText = async (textInput: string, tone: 'Formal' | 'Casual' |
 
 // NEW: Suggest Reply Feature
 export const suggestReply = async (history: { role: string, parts: { text: string }[] }[]): Promise<string> => {
-    if (!process.env.API_KEY) return "Error: API Key Missing";
+    if (!API_KEY) return "Error: API Key Missing";
     try {
         const chat = ai.chats.create({ model: TEXT_MODEL, history });
         const result = await chat.sendMessage({ message: "[SYSTEM: The user is stuck. Provide 3 short, natural suggested responses they could say next in this conversation context. Just list the options.]" });
@@ -256,7 +282,7 @@ export const suggestReply = async (history: { role: string, parts: { text: strin
 };
 
 export const createStudyPlan = async (goal: string, level: Difficulty, days: number): Promise<StudyPlan> => {
-  if (!process.env.API_KEY) throw new Error("API Key missing.");
+  if (!API_KEY) throw new Error("API Key missing.");
   const prompt = `Create a ${days}-day English study plan for a ${level} student who wants to: ${goal}. The output MUST be in English.`;
 
   try {
@@ -298,7 +324,7 @@ export const createStudyPlan = async (goal: string, level: Difficulty, days: num
 };
 
 export const chatWithAi = async (message: string, history: { role: string, parts: { text: string }[] }[], systemInstruction?: string) => {
-  if (!process.env.API_KEY) throw new Error("API Key missing.");
+  if (!API_KEY) throw new Error("API Key missing.");
   try {
     const chat = ai.chats.create({
       model: TEXT_MODEL,
